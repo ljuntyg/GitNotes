@@ -8,11 +8,14 @@ import android.os.Bundle;
 import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
+    private String repositoryLink;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setSupportActionBar(findViewById(R.id.toolbar));
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         ButtonContainerFragment buttonContainerFragment = new ButtonContainerFragment();
