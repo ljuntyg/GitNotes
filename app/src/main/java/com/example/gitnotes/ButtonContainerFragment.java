@@ -1,6 +1,7 @@
 package com.example.gitnotes;
 
-import androidx.lifecycle.Observer;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
@@ -15,13 +16,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ButtonContainerFragment extends Fragment {
 
     private ButtonContainerViewModel mViewModel;
     private LinearLayout buttonContainer;
-    private Observer<List<Note>> observer;
+    private Note lastAddedNote;
 
     public static ButtonContainerFragment newInstance() { return new ButtonContainerFragment(); }
 
@@ -31,21 +33,50 @@ public class ButtonContainerFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_button_container, container, false);
 
         mViewModel = new ViewModelProvider(requireActivity()).get(ButtonContainerViewModel.class);
+
+
+        // Check to only add note if not duplicate
         mViewModel.getNotes().observe(getViewLifecycleOwner(), notes -> {
             if (!notes.isEmpty()) {
-                addButton(notes.get(notes.size() - 1).getTitle());
+                Note latestNote = notes.get(notes.size() - 1);
+                if (!latestNote.equals(lastAddedNote)) {
+                    lastAddedNote = latestNote;
+                    addButton(latestNote);
+                }
             }
         });
 
         buttonContainer = view.findViewById(R.id.button_container);
 
+        recreateButtons();
+
         return view;
     }
 
-    public void addButton(String text) {
+    public void addButton(Note note) {
         Button button = new Button(getContext());
-        button.setText(text);
+        button.setText(note.getTitle());
+        button.setOnClickListener(view -> openNote(note));
         buttonContainer.addView(button);
     }
 
+    public void openNote(Note note) {
+        NoteFragment noteFragment = NoteFragment.newInstance(note);
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        toolbar.setVisibility(View.GONE);
+
+        FragmentTransaction fragmentTransaction = getParentFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.main_container, noteFragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void recreateButtons() {
+        List<Note> notes = mViewModel.getNotes().getValue();
+        if (notes != null && !notes.isEmpty()) {
+            for (Note note : notes) {
+                addButton(note);
+            }
+        }
+    }
 }

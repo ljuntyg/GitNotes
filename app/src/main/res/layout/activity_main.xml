@@ -24,6 +24,16 @@
             tools:layout_editor_absoluteX="16dp">
 
             <ImageButton
+                android:layout_width="?attr/actionBarSize"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@null"
+                android:contentDescription="@string/new_note"
+                android:padding="5dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/baseline_note_add_white_48"
+                android:onClick="openNewNoteDialog"/>
+
+            <ImageButton
                 android:id="@+id/toolbar_button_1"
                 android:layout_width="?attr/actionBarSize"
                 android:layout_height="?attr/actionBarSize"
@@ -32,7 +42,7 @@
                 android:padding="10dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/github_mark_white"
-                android:visibility="visible" />
+                android:onClick="openGitHubInputDialog"/>
 
         </LinearLayout>
 
