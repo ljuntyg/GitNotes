@@ -1,9 +1,13 @@
 package com.example.gitnotes;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,17 +19,34 @@ public class NewNoteDialogFragment extends DialogFragment {
 
     private ButtonContainerViewModel viewModel;
 
-    public static NewNoteDialogFragment newInstance() { return new NewNoteDialogFragment(); }
+    public static NewNoteDialogFragment newInstance(Bundle sharedText) {
+        NewNoteDialogFragment fragment = new NewNoteDialogFragment();
+        fragment.setArguments(sharedText);
+        return fragment;
+    }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
 
         viewModel = new ViewModelProvider(requireActivity()).get(ButtonContainerViewModel.class);
+
         final EditText titleInput = new EditText(getContext());
         final EditText bodyInput = new EditText(getContext());
         titleInput.setHint(getString(R.string.title));
         bodyInput.setHint(getString(R.string.body));
+
+        titleInput.setMaxLines(4);
+        bodyInput.setMaxLines(20);
+
+        assert getArguments() != null;
+        if (!getArguments().isEmpty()) {
+            String body = getArguments().getString("shared_text");
+            String title = body.split("\n")[0];
+
+            bodyInput.setText(body);
+            titleInput.setText(title);
+        }
 
         LinearLayout linearLayout = new LinearLayout(getContext());
         linearLayout.setOrientation(LinearLayout.VERTICAL);

@@ -1,6 +1,7 @@
 package com.example.gitnotes;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Context;
@@ -15,13 +16,15 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setSupportActionBar(findViewById(R.id.toolbar));
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         ButtonContainerFragment buttonContainerFragment = new ButtonContainerFragment();
@@ -29,8 +32,8 @@ public class MainActivity extends AppCompatActivity {
 
         handleIntent(getIntent());
 
-        storeFile("testFile", "this is a test file!");
-        System.out.println(Arrays.toString(getFiles()));
+        /*storeFile("testFile", "this is a test file!");
+        System.out.println(Arrays.toString(getFiles()));*/
     }
 
     @Override
@@ -43,8 +46,10 @@ public class MainActivity extends AppCompatActivity {
         if (Intent.ACTION_SEND.equals(intent.getAction()) && "text/plain".equals(intent.getType())) {
             String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
             if (sharedText != null) {
-                InputDialogFragment dialog = InputDialogFragment.newInstance(sharedText);
-                dialog.show(getSupportFragmentManager(), InputDialogFragment.TAG);
+                Bundle args = new Bundle();
+                args.putString("shared_text", sharedText);
+                NewNoteDialogFragment dialog = NewNoteDialogFragment.newInstance(args);
+                dialog.show(getSupportFragmentManager(), NewNoteDialogFragment.TAG);
             }
         }
     }
@@ -55,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openNewNoteDialog(View view) {
-        NewNoteDialogFragment dialog = NewNoteDialogFragment.newInstance();
+        NewNoteDialogFragment dialog = NewNoteDialogFragment.newInstance(new Bundle());
         dialog.show(getSupportFragmentManager(), NewNoteDialogFragment.TAG);
     }
 

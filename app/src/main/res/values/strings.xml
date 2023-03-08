@@ -11,4 +11,9 @@
     <string name="github_repo">GitHub repository link:</string>
     <string name="link">Link</string>
     <string name="new_note">New note</string>
+    <string name="edit_note">Edit Note</string>
+    <string name="remove_note">Remove Note</string>
+    <string name="remove_note_question">Remove note?</string>
+    <string name="yes_confirm">Yes</string>
+    <string name="no_cancel">No</string>
 </resources>

@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ButtonContainerFragment extends Fragment {
@@ -33,7 +32,6 @@ public class ButtonContainerFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_button_container, container, false);
 
         mViewModel = new ViewModelProvider(requireActivity()).get(ButtonContainerViewModel.class);
-
 
         // Check to only add note if not duplicate
         mViewModel.getNotes().observe(getViewLifecycleOwner(), notes -> {
@@ -62,8 +60,6 @@ public class ButtonContainerFragment extends Fragment {
 
     public void openNote(Note note) {
         NoteFragment noteFragment = NoteFragment.newInstance(note);
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        toolbar.setVisibility(View.GONE);
 
         FragmentTransaction fragmentTransaction = getParentFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.main_container, noteFragment)
