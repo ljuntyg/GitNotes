@@ -1,10 +1,10 @@
-package com.example.gitnotes;
-
-import android.widget.Button;
+package com.example.gitnotes.viewmodels;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
+import com.example.gitnotes.data.Note;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -4,7 +4,7 @@
     android:id="@+id/fragment_button_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ButtonContainerFragment">
+    tools:context=".fragments.ButtonContainerFragment">
 
     <LinearLayout
         android:id="@+id/button_container"

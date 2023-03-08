@@ -1,4 +1,4 @@
-package com.example.gitnotes;
+package com.example.gitnotes.fragments;
 
 import android.app.Dialog;
 import android.os.Bundle;
@@ -8,8 +8,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.example.gitnotes.viewmodels.ButtonContainerViewModel;
+import com.example.gitnotes.R;
 
 public class GitHubInputDialogFragment extends DialogFragment {
 

@@ -1,19 +1,19 @@
-package com.example.gitnotes;
+package com.example.gitnotes.fragments;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.example.gitnotes.viewmodels.ButtonContainerViewModel;
+import com.example.gitnotes.data.Note;
+import com.example.gitnotes.R;
 
 public class NewNoteDialogFragment extends DialogFragment {
 

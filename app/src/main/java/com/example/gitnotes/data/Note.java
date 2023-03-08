@@ -1,4 +1,4 @@
-package com.example.gitnotes;
+package com.example.gitnotes.data;
 
 import java.io.Serializable;
 

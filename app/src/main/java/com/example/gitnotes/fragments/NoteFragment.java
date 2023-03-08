@@ -1,14 +1,12 @@
-package com.example.gitnotes;
+package com.example.gitnotes.fragments;
 
 import android.graphics.Typeface;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.text.Editable;
@@ -19,11 +17,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.util.Objects;
+import com.example.gitnotes.viewmodels.ButtonContainerViewModel;
+import com.example.gitnotes.data.Note;
+import com.example.gitnotes.R;
 
 public class NoteFragment extends Fragment {
     private String title;

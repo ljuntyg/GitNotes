@@ -1,6 +1,5 @@
-package com.example.gitnotes;
+package com.example.gitnotes.fragments;
 
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -15,6 +14,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+
+import com.example.gitnotes.viewmodels.ButtonContainerViewModel;
+import com.example.gitnotes.data.Note;
+import com.example.gitnotes.R;
 
 import java.util.List;
 

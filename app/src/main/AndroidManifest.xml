@@ -13,7 +13,7 @@
         tools:targetApi="31">
         <activity
             android:launchMode="singleTask"
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
 
             tools:ignore="LockedOrientationActivity"
             android:screenOrientation="portrait"
