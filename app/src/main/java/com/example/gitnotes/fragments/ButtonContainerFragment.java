@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,13 +36,18 @@ public class ButtonContainerFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_button_container, container, false);
 
         mViewModel = new ViewModelProvider(requireActivity()).get(ButtonContainerViewModel.class);
+        final List<Note> currNotes = mViewModel.getNotes().getValue();
+        if (!currNotes.isEmpty()) {
+            lastAddedNote = currNotes.get(currNotes.size() - 1);
+        }
 
         // Check to only add note if not duplicate
         mViewModel.getNotes().observe(getViewLifecycleOwner(), notes -> {
             if (!notes.isEmpty()) {
                 Note latestNote = notes.get(notes.size() - 1);
-                if (!latestNote.equals(lastAddedNote)) {
+                if (latestNote != null && !latestNote.equals(lastAddedNote)) {
                     lastAddedNote = latestNote;
+                    Log.d("MYLOG", latestNote.toString());
                     addButton(latestNote);
                 }
             }
@@ -55,10 +61,12 @@ public class ButtonContainerFragment extends Fragment {
     }
 
     public void addButton(Note note) {
-        Button button = new Button(getContext());
-        button.setText(note.getTitle());
-        button.setOnClickListener(view -> openNote(note));
-        buttonContainer.addView(button);
+        if (note != null) {
+            Button button = new Button(getContext());
+            button.setText(note.getTitle());
+            button.setOnClickListener(view -> openNote(note));
+            buttonContainer.addView(button);
+        }
     }
 
     public void openNote(Note note) {
