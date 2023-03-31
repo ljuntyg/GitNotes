@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import com.example.gitnotes.data.Note;
 import com.example.gitnotes.data.NoteDbHelper;
+import com.example.gitnotes.data.PeripheralDataHelper;
 import com.example.gitnotes.fragments.ButtonContainerFragment;
 import com.example.gitnotes.fragments.GitHubInputDialogFragment;
 import com.example.gitnotes.fragments.NewNoteDialogFragment;
@@ -44,7 +45,11 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private ButtonContainerViewModel viewModel;
-    private static final int REQUEST_PERMISSIONS = 100;
+    private PeripheralDataHelper peripheralDataHelper;
+
+    public PeripheralDataHelper getPeripheralDataHelper() {
+        return peripheralDataHelper;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +65,11 @@ public class MainActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(ButtonContainerViewModel.class);
         viewModel.setDbHelper(new NoteDbHelper(this));
 
+        peripheralDataHelper = new PeripheralDataHelper(getSharedPreferences("app_preferences", MODE_PRIVATE));
+
         // Scan for repositories in local storage
         Map<File, String> foundRepositories = new HashMap<>();
-        viewModel.getGitHelper().scanForGitRepositories(getFilesDir(), foundRepositories);
+        viewModel.getGitHelper().scanForGitRepositories(getFilesDir(), foundRepositories, getString(R.string.repo_link_missing));
         viewModel.setRepositories(foundRepositories);
 
         Log.d("MYLOG", viewModel.getRepositories().getValue().toString());
@@ -71,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         ButtonContainerFragment buttonContainerFragment = new ButtonContainerFragment();
         fragmentTransaction.add(R.id.main_container, buttonContainerFragment).commit();
 
-        Log.d("MYLOG", "token: " + retrieveToken());
+        Log.d("MYLOG", "token: " + peripheralDataHelper.retrieveToken());
         Log.d("MYLOG", "files: " + Arrays.toString(fileList()));
 
         handleIntent(getIntent());
@@ -181,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void openGitHubInputDialog(View view) {
-        if (retrieveToken() == null) {
+        if (peripheralDataHelper.retrieveToken() == null) {
             enterTokenAndUsernameDialog(isTokenAndUsernameValid -> {
                 if (isTokenAndUsernameValid) {
                     GitHubInputDialogFragment dialog = GitHubInputDialogFragment.newInstance();
@@ -192,35 +199,6 @@ public class MainActivity extends AppCompatActivity {
             GitHubInputDialogFragment dialog = GitHubInputDialogFragment.newInstance();
             dialog.show(getSupportFragmentManager(), GitHubInputDialogFragment.TAG);
         }
-    }
-
-    // Not secure?
-    private void storeUsername(String username) {
-        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("username", username);
-        editor.apply();
-    }
-
-    // Not secure?
-    public String retrieveUsername() {
-        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
-        return sharedPreferences.getString("username", null);
-    }
-
-
-    // Not secure?
-    private void storeToken(String token) {
-        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("personal_access_token", token);
-        editor.apply();
-    }
-
-    // Not secure?
-    public String retrieveToken() {
-        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
-        return sharedPreferences.getString("personal_access_token", null);
     }
 
     public interface TokenDialogCallback {
@@ -249,8 +227,8 @@ public class MainActivity extends AppCompatActivity {
                         callback.onTokenProvided(true);
                     } else if (Pattern.matches("^ghp_[a-zA-Z0-9]{36}$", token) ||
                             Pattern.matches("^github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}$", token)) {
-                        storeToken(token);
-                        storeUsername(username);
+                        peripheralDataHelper.storeToken(token);
+                        peripheralDataHelper.storeUsername(username);
                         dialog.dismiss();
                         showAlertDialog("Token and username successfully registered.", () -> {
                             callback.onTokenProvided(true);
@@ -268,20 +246,6 @@ public class MainActivity extends AppCompatActivity {
                 .create();
         AlertDialog alert = builder.create();
         alert.show();
-    }
-
-    public void deleteAllFilesInInternalStorage() {
-        File internalStorageDir = this.getFilesDir();
-        deleteRecursive(internalStorageDir);
-    }
-
-    private void deleteRecursive(File fileOrDirectory) {
-        if (fileOrDirectory.isDirectory()) {
-            for (File child : fileOrDirectory.listFiles()) {
-                deleteRecursive(child);
-            }
-        }
-        fileOrDirectory.delete();
     }
 }
 

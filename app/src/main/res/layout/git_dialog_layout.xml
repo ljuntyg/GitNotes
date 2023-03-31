@@ -50,5 +50,12 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/create_new_repo" />
+
+        <Button
+            android:id="@+id/delete_repo_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/delete_short"/>
     </LinearLayout>
 </LinearLayout>

@@ -18,20 +18,21 @@ import java.util.concurrent.Executors;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GitHelper {
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private File selectedRepository;
     private Git git;
-    private Repository selectedRepository;
 
 
-    public Repository getSelectedRepository() {
+    public File getSelectedRepository() {
         return selectedRepository;
     }
 
-    public void setSelectedRepository(Repository repository) {
+    public void setSelectedRepository(File repository) {
         selectedRepository = repository;
     }
 
@@ -47,13 +48,11 @@ public class GitHelper {
                 File gitDir = new File(baseDir, ".git");
                 if (!gitDir.exists()) {
                     git = Git.init().setDirectory(baseDir).call();
-                    Log.d("MYLOG", "repo created");
                     if (callback != null) {
                         callback.onResult(0); // new repository created
                     }
                 } else {
                     git = Git.open(baseDir);
-                    Log.d("MYLOG", "repo exists, opening current repo");
                     if (callback != null) {
                         callback.onResult(1); // repository exists
                     }
@@ -75,7 +74,10 @@ public class GitHelper {
         executorService.submit(() -> {
             try (Git git = new Git(repository)) {
                 git.add().addFilepattern(notePath).call();
-            } catch (GitAPIException e) {
+            } catch (GitAPIException e) { // Exception not broad enough
+                e.printStackTrace();
+            } catch (Exception e) {
+                Log.d("MYLOG", "remove me :)");
                 e.printStackTrace();
             }
 
@@ -99,17 +101,19 @@ public class GitHelper {
         });
     }
 
-    public void pushToGit(Repository repository, String remoteUrl, String personalAccessToken, Runnable callback) {
+    public void pushToGit(Repository repository, String remoteUrl, String personalAccessToken, Runnable successCallback, Consumer<Exception> errorCallback) {
         executorService.submit(() -> {
             try (Git git = new Git(repository)) {
                 UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("token", personalAccessToken);
                 git.push().setCredentialsProvider(credentialsProvider).setRemote(remoteUrl).call();
+                if (successCallback != null) {
+                    successCallback.run();
+                }
             } catch (GitAPIException e) {
                 e.printStackTrace();
-            }
-
-            if (callback != null) {
-                callback.run();
+                if (errorCallback != null) {
+                    errorCallback.accept(e);
+                }
             }
         });
     }
@@ -160,7 +164,7 @@ public class GitHelper {
         return repoName.replaceFirst("\\.git$", "");
     }
 
-    public void scanForGitRepositories(File directory, Map<File, String> repositories) {
+    public void scanForGitRepositories(File directory, Map<File, String> repositories, String ifMissingLink) {
         File[] files = directory.listFiles();
 
         if (files != null) {
@@ -168,14 +172,26 @@ public class GitHelper {
                 if (file.isDirectory()) {
                     if (new File(file, ".git").exists()) {
                         File repoPath = file.getAbsoluteFile();
-                        String repoLink = readRepoMetadata(repoPath);
+                        String repoLink = readRepoMetadata(repoPath, ifMissingLink);
                         repositories.put(file, repoLink);
                     } else {
-                        scanForGitRepositories(file, repositories);
+                        scanForGitRepositories(file, repositories, ifMissingLink);
                     }
                 }
             }
         }
+    }
+
+    public String readRepoMetadata(File repository, String ifMissingLink) {
+        File metadataFile = new File(repository, ".metadata");
+        try (Scanner scanner = new Scanner(metadataFile)) {
+            if (scanner.hasNextLine()) {
+                return scanner.nextLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return ifMissingLink;
     }
 
     public void saveRepoMetadata(File repository, String repoLink) {
@@ -189,15 +205,11 @@ public class GitHelper {
         }
     }
 
-    public String readRepoMetadata(File repository) {
-        File metadataFile = new File(repository, ".metadata");
-        try (Scanner scanner = new Scanner(metadataFile)) {
-            if (scanner.hasNextLine()) {
-                return scanner.nextLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    public boolean isGit(File repo) {
+        if (repo == null) {
+            return false;
         }
-        return "No link for repository";
+        File gitDir = new File(repo, ".git");
+        return gitDir.exists() && gitDir.isDirectory();
     }
 }

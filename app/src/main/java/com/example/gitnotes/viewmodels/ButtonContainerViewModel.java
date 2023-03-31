@@ -13,11 +13,15 @@ import com.example.gitnotes.data.Note;
 import com.example.gitnotes.data.NoteDbHelper;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import kotlin.Triple;
 
@@ -131,4 +135,24 @@ public class ButtonContainerViewModel extends ViewModel {
         return gitHelper;
     }
 
+    public void createTextFiles(File directory) {
+        List<Note> allNotes = notes.getValue();
+
+        if (allNotes != null) {
+            for (Note note : allNotes) {
+                try {
+                    File file = new File(directory, note.getTitle() + ".txt");
+                    FileWriter writer = new FileWriter(file);
+                    writer.write(note.getBody());
+                    writer.close();
+                } catch (IOException e) {
+                    Log.e("MYLOG", "Failed to create text file for note " + note.getTitle(), e);
+                }
+            }
+        }
+
+        Log.d("MYLOG", "directory contents after txt file creation: " + Arrays.stream(directory.listFiles())
+                                                                                .map(File::getName)
+                                                                                .collect(Collectors.joining(", ")));
+    }
 }

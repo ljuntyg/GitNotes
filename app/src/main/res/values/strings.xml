@@ -29,4 +29,6 @@
     <string name="selected_repo">Selected Git repository:</string>
     <string name="enter_repo_link">Enter repository link</string>
     <string name="choose_other_repo">Choose other repository</string>
+    <string name="delete_short">Del</string>
+    <string name="repo_link_missing">No link for repository</string>
 </resources>

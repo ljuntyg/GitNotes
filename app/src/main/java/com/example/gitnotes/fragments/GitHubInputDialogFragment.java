@@ -3,6 +3,8 @@ package com.example.gitnotes.fragments;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +22,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.gitnotes.activities.MainActivity;
+import com.example.gitnotes.data.GitHelper;
 import com.example.gitnotes.viewmodels.ButtonContainerViewModel;
 import com.example.gitnotes.R;
 
@@ -30,8 +33,12 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -39,7 +46,9 @@ import java.util.stream.Collectors;
 public class GitHubInputDialogFragment extends DialogFragment {
 
     private ButtonContainerViewModel viewModel;
+    private GitHelper gitHelper;
     private Spinner repoSpinner;
+    private MainActivity mainActivity;
     private int customOptionPosition;
 
     public static GitHubInputDialogFragment newInstance() {
@@ -51,15 +60,18 @@ public class GitHubInputDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
 
         viewModel = new ViewModelProvider(requireActivity()).get(ButtonContainerViewModel.class);
+        gitHelper = viewModel.getGitHelper();
 
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.git_dialog_layout, null);
+        mainActivity = (MainActivity) requireActivity();
 
         EditText input = dialogView.findViewById(R.id.repo_link_input);
         Button cloneButton = dialogView.findViewById(R.id.clone_button);
         Button pullButton = dialogView.findViewById(R.id.pull_button);
         Button pushButton = dialogView.findViewById(R.id.push_button);
         Button createRepoButton = dialogView.findViewById(R.id.create_repo_button);
+        Button deleteRepoButton = dialogView.findViewById(R.id.delete_repo_button);
 
         repoSpinner = dialogView.findViewById(R.id.repo_spinner);
 
@@ -97,11 +109,14 @@ public class GitHubInputDialogFragment extends DialogFragment {
                 String selectedItem = (String) parent.getItemAtPosition(position);
 
                 if (position == customOptionPosition) {
-                    input.post(() -> input.setText(""));
+                    input.setText("");
+                    updateRepoLinkInput(input);
                 } else if (viewModel.getRepositories().getValue() != null) {
                     for (File repoFile : viewModel.getRepositories().getValue().keySet()) {
                         if (repoFile.getName().equals(selectedItem)) {
-                            input.post(() -> input.setText(viewModel.getRepositories().getValue().get(repoFile)));
+                            input.setText(viewModel.getRepositories().getValue().get(repoFile));
+                            gitHelper.setSelectedRepository(repoFile);
+                            updateRepoLinkInput(input);
                             break;
                         }
                     }
@@ -114,78 +129,156 @@ public class GitHubInputDialogFragment extends DialogFragment {
             }
         });
 
+        input.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
-        // Clone repository
-        cloneButton.setOnClickListener(v -> {
-            MainActivity mainActivity = (MainActivity) requireActivity();
-            String repoName = viewModel.getGitHelper().extractRepoName(input.getText().toString());
-            Log.d("MYLOG", repoName);
-
-            // Check if the repoName matches the regular expression and if the URL contains github.com
-            if (Pattern.matches("^[a-zA-Z0-9-_]+$", repoName) && input.getText().toString().contains("github.com")) {
-                UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(mainActivity.retrieveUsername(), mainActivity.retrieveToken());
-                viewModel.getGitHelper().cloneGitRepository(input.getText().toString(), credentialsProvider, mainActivity.getFilesDir().toString() + "/" + repoName, () -> {
-                    // The cloning operation has finished, update the UI on the main UI thread.
-                    mainActivity.runOnUiThread(() -> {
-                        viewModel.getGitHelper().saveRepoMetadata(new File(mainActivity.getFilesDir().toString() + "/" + repoName), input.getText().toString());
-                        mainActivity.showAlertDialog("Cloned repository " + repoName + ".");
-                        viewModel.getGitHelper().scanForGitRepositories(mainActivity.getFilesDir(), viewModel.getRepositories().getValue()); // Update repositories
-                        dismiss(); // Dismiss the current AlertDialog
-                    });
-                });
-            } else {
-                // If either condition is not met, show an AlertDialog with an error message
-                mainActivity.showAlertDialog("Invalid repository name or URL. Please ensure the repository name contains only alphanumeric characters and hyphens, and the URL is a valid GitHub URL.");
+            @Override
+            public void afterTextChanged(Editable s) {
+                updateRepoLinkInput(input);
             }
         });
 
 
 
-        // Pull repository
-        pullButton.setOnClickListener(v -> {
-            MainActivity mainActivity = (MainActivity) requireActivity();
-            String repoName = viewModel.getGitHelper().extractRepoName(input.getText().toString());
+        // Delete selected repository
+        deleteRepoButton.setOnClickListener(b -> {
+            if (repoSpinner.getSelectedItemPosition() != customOptionPosition) {
+                File repoToRemove = gitHelper.getSelectedRepository();
+                String repoName = repoToRemove.getName();
 
-            if (Pattern.matches("^[a-zA-Z0-9-_]+$", repoName) && input.getText().toString().contains("github.com")) {
-                String repoPath = requireActivity().getFilesDir().toString() + "/" + repoName;
-                FileRepositoryBuilder builder = new FileRepositoryBuilder();
-                try {
-                    Repository repository = builder.setGitDir(new File(repoPath, ".git")).build();
-                    viewModel.getGitHelper().pullFromGit(repository, input.getText().toString(), mainActivity.retrieveToken(), () -> {
+                // Show a confirmation dialog
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Delete Repository")
+                        .setMessage("Are you sure you want to delete the repository " + repoName + "?")
+                        .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                            // Delete the repository folder
+                            if (mainActivity.getPeripheralDataHelper().deleteRecursive(repoToRemove)) {
+                                viewModel.removeRepository(repoToRemove);
+                                gitHelper.scanForGitRepositories(mainActivity.getFilesDir(),
+                                        viewModel.getRepositories().getValue(), getString(R.string.repo_link_missing));
+                                mainActivity.showAlertDialog("Repo " + repoName + " removed successfully.");
+                            } else {
+                                mainActivity.showAlertDialog("Failed to remove the repository " + repoName + ".");
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, null)
+                        .setIcon(R.drawable.warning_48px)
+                        .show();
+            }
+        });
+
+
+
+        // Clone selected repository
+        cloneButton.setOnClickListener(v -> {
+            if (repoSpinner.getSelectedItemPosition() == customOptionPosition) {
+                String repoName = gitHelper.extractRepoName(input.getText().toString());
+
+                // Check if the repoName matches the regular expression and if the URL contains github.com
+                if (Pattern.matches("^[a-zA-Z0-9-_]+$", repoName) && input.getText().toString().contains("github.com")) {
+                    UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(mainActivity.getPeripheralDataHelper().retrieveUsername(), mainActivity.getPeripheralDataHelper().retrieveToken());
+                    gitHelper.cloneGitRepository(input.getText().toString(), credentialsProvider, mainActivity.getFilesDir().toString() + "/" + repoName, () -> {
+                        // The cloning operation has finished, update the UI on the main UI thread.
                         mainActivity.runOnUiThread(() -> {
-                            mainActivity.showAlertDialog("Pulled from repository " + repoName + ".");
+                            gitHelper.saveRepoMetadata(new File(mainActivity.getFilesDir().toString() + "/" + repoName), input.getText().toString());
+                            mainActivity.showAlertDialog("Cloned repository " + repoName + ".");
+                            gitHelper.scanForGitRepositories(mainActivity.getFilesDir(), viewModel.getRepositories().getValue(), getString(R.string.repo_link_missing)); // Update repositories
                             dismiss(); // Dismiss the current AlertDialog
                         });
                     });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    mainActivity.showAlertDialog("Failed to open the local repository.");
+                } else {
+                    // If either condition is not met, show an AlertDialog with an error message
+                    mainActivity.showAlertDialog("Invalid repository name or URL. Please ensure the repository name contains only alphanumeric characters and hyphens, and the URL is a valid GitHub URL.");
                 }
-            } else {
-                mainActivity.showAlertDialog("Invalid repository name or URL. Please ensure the repository name contains only alphanumeric characters and hyphens, and the URL is a valid GitHub URL.");
             }
         });
 
 
 
-        pushButton.setOnClickListener(v -> {
-            // Push repository action
+        // Pull selected repository
+        pullButton.setOnClickListener(v -> {
+            if (repoSpinner.getSelectedItemPosition() != customOptionPosition && gitHelper.isGit(gitHelper.getSelectedRepository())) {
+                String repoName = gitHelper.extractRepoName(input.getText().toString());
+
+                if (Pattern.matches("^[a-zA-Z0-9-_]+$", repoName) && input.getText().toString().contains("github.com")) {
+                    String repoPath = requireActivity().getFilesDir().toString() + "/" + repoName;
+                    FileRepositoryBuilder builder = new FileRepositoryBuilder();
+                    try {
+                        Repository repository = builder.setGitDir(new File(repoPath, ".git")).build();
+                        gitHelper.pullFromGit(repository, input.getText().toString(), mainActivity.getPeripheralDataHelper().retrieveToken(), () -> {
+                            mainActivity.runOnUiThread(() -> {
+                                mainActivity.showAlertDialog("Pulled from repository " + repoName + ".");
+                                dismiss(); // Dismiss the current AlertDialog
+                            });
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        mainActivity.showAlertDialog("Failed to open the local repository.");
+                    }
+                } else {
+                    mainActivity.showAlertDialog("Invalid repository name or URL. Please ensure the repository name contains only alphanumeric characters and hyphens, and the URL is a valid GitHub URL.");
+                }
+            }
         });
 
 
 
-        // Create repository
+        // Push selected repository
+        pushButton.setOnClickListener(v -> {
+            if (repoSpinner.getSelectedItemPosition() != customOptionPosition && gitHelper.isGit(gitHelper.getSelectedRepository())) {
+                File selectedRepository = gitHelper.getSelectedRepository();
+
+                viewModel.createTextFiles(selectedRepository); // !!!!!!!!!!!!!!!!! Just testing
+
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
+                String commitMessage = "Commit at: " + formatter.format(new Date());
+                String repoPath = selectedRepository.toString();
+                Repository tempRepository = null;
+                try {
+                    tempRepository = new FileRepositoryBuilder()
+                            .setGitDir(selectedRepository)
+                            .readEnvironment()
+                            .findGitDir()
+                            .build();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                final Repository repository = tempRepository;
+                gitHelper.addToGit(repository, repoPath, () ->
+                        gitHelper.commitToGit(repository, commitMessage, () ->
+                                gitHelper.pushToGit(repository, viewModel.getRepositories().getValue().get(selectedRepository), mainActivity.getPeripheralDataHelper().retrieveToken(), () -> {
+                                    gitHelper.scanForGitRepositories(requireActivity().getFilesDir(), viewModel.getRepositories().getValue(), getString(R.string.repo_link_missing));
+                                    mainActivity.runOnUiThread(() -> {
+                                        mainActivity.showAlertDialog("Successfully pushed changes to the remote repository");
+                                    });
+                                }, e -> {
+                                    mainActivity.runOnUiThread(() -> {
+                                        mainActivity.showAlertDialog("Error while pushing changes: " + e.getMessage());
+                                    });
+                                })
+                        )
+                );
+            }
+        });
+
+
+
+        // Create new repository
         createRepoButton.setOnClickListener(v -> {
             String repoPath = requireActivity().getFilesDir().toString();
-            MainActivity mainActivity = (MainActivity) requireActivity();
 
             mainActivity.showInputDialog("Enter repo name:", Pattern.compile("^[a-zA-Z0-9-_]+$"),
                     "Invalid repository name. Please use only alphanumeric characters and hyphens.", repoName -> {
-                viewModel.getGitHelper().initGitRepository(repoPath, repoName, result -> {
+                gitHelper.initGitRepository(repoPath, repoName, result -> {
                     mainActivity.runOnUiThread(() -> {
                         if (result == 0) {
-                            viewModel.getGitHelper().scanForGitRepositories(mainActivity.getFilesDir(), viewModel.getRepositories().getValue());
+                            gitHelper.scanForGitRepositories(mainActivity.getFilesDir(), viewModel.getRepositories().getValue(), getString(R.string.repo_link_missing));
                             mainActivity.showAlertDialog("Created repository with name " + repoName + ".");
                         } else if (result == 1) {
                             mainActivity.showAlertDialog("Repository with name " + repoName +
@@ -208,6 +301,14 @@ public class GitHubInputDialogFragment extends DialogFragment {
                     dismiss();
                 })
                 .create();
+    }
+
+    private void updateRepoLinkInput(EditText input) {
+        if (gitHelper.isGit(gitHelper.getSelectedRepository())) {
+            input.setEnabled(false);
+        } else {
+            input.setEnabled(true);
+        }
     }
 
     @Override
