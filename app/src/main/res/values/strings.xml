@@ -16,4 +16,17 @@
     <string name="remove_note_question">Remove note?</string>
     <string name="yes_confirm">Yes</string>
     <string name="no_cancel">No</string>
+    <string name="create_new_repo">Repo</string>
+    <string name="clone">Clone</string>
+    <string name="push">Push</string>
+    <string name="pull">Pull</string>
+    <string name="personal_access_token">Personal access token</string>
+    <string name="pat_and_username">Please enter personal access token and username:</string>
+    <string name="token">Token</string>
+    <string name="name">Name</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="selected_repo">Selected Git repository:</string>
+    <string name="enter_repo_link">Enter repository link</string>
+    <string name="choose_other_repo">Choose other repository</string>
 </resources>

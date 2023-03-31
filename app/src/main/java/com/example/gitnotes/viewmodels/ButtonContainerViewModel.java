@@ -8,21 +8,31 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.gitnotes.data.GitHelper;
 import com.example.gitnotes.data.Note;
 import com.example.gitnotes.data.NoteDbHelper;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import kotlin.Triple;
+
 public class ButtonContainerViewModel extends ViewModel {
-    private MutableLiveData<List<Note>> notes = new MutableLiveData<>();
-    private MutableLiveData<String> repoLink = new MutableLiveData<>();
+    private final MutableLiveData<List<Note>> notes = new MutableLiveData<>();
+    private final MutableLiveData<Map<File, String>> repositories = new MutableLiveData<>();
+    private final MutableLiveData<Integer> selectedSpinnerPosition = new MutableLiveData<>(0);
+    private final GitHelper gitHelper;
 
     private NoteDbHelper dbHelper;
 
     public ButtonContainerViewModel() {
+        gitHelper = new GitHelper();
         notes.setValue(new ArrayList<>());
+        repositories.setValue(new HashMap<>());
     }
 
     public void setDbHelper(NoteDbHelper dbHelper) {
@@ -36,6 +46,35 @@ public class ButtonContainerViewModel extends ViewModel {
         dbHelper.close();
     }
 
+    public LiveData<Integer> getSelectedSpinnerPosition() {
+        return selectedSpinnerPosition;
+    }
+
+    public void setSelectedSpinnerPosition(int position) {
+        selectedSpinnerPosition.setValue(position);
+    }
+
+    public void addRepository(File repository, String repoLink) {
+        Map<File, String> currentRepositories = repositories.getValue();
+        assert currentRepositories != null;
+        currentRepositories.put(repository, repoLink);
+        repositories.setValue(currentRepositories);
+    }
+
+    public void removeRepository(File repository) {
+        Map<File, String> currentRepositories = repositories.getValue();
+        assert currentRepositories != null;
+        currentRepositories.remove(repository);
+        repositories.setValue(currentRepositories);
+    }
+
+    public LiveData<Map<File, String>> getRepositories() {
+        return repositories;
+    }
+
+    public void setRepositories(Map<File, String> newRepositories) {
+        repositories.setValue(newRepositories);
+    }
 
     public LiveData<List<Note>> getNotes() {
         return notes;
@@ -88,7 +127,8 @@ public class ButtonContainerViewModel extends ViewModel {
         notes.setValue(dbHelper.viewData());
     }
 
-    public String getRepoLink() { return repoLink.getValue(); }
+    public GitHelper getGitHelper() {
+        return gitHelper;
+    }
 
-    public void setRepoLink(String link) { repoLink.setValue(link); }
 }
