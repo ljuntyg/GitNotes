@@ -20,42 +20,53 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:paddingTop="16dp">
 
-        <Button
-            android:id="@+id/clone_button"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/clone" />
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/pull_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/pull" />
+            <Button
+                android:id="@+id/clone_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/clone" />
 
-        <Button
-            android:id="@+id/push_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/push" />
+            <Button
+                android:id="@+id/pull_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/pull" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/create_repo_button"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/create_new_repo" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/push_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/push" />
+
+            <Button
+                android:id="@+id/create_repo_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/create_new_repo" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/delete_repo_button"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="@string/delete_short"/>
     </LinearLayout>
 </LinearLayout>

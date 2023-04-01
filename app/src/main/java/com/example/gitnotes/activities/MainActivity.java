@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Scan for repositories in local storage
         Map<File, String> foundRepositories = new HashMap<>();
-        viewModel.getGitHelper().scanForGitRepositories(getFilesDir(), foundRepositories, getString(R.string.repo_link_missing));
+        viewModel.getGitHelper().scanForGitRepositories(viewModel, getFilesDir(), getString(R.string.repo_link_missing));
         viewModel.setRepositories(foundRepositories);
 
         Log.d("MYLOG", viewModel.getRepositories().getValue().toString());
@@ -79,7 +80,16 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.add(R.id.main_container, buttonContainerFragment).commit();
 
         Log.d("MYLOG", "token: " + peripheralDataHelper.retrieveToken());
-        Log.d("MYLOG", "files: " + Arrays.toString(fileList()));
+        Log.d("MYLOG", "files: " + Arrays.stream(getFilesDir().listFiles())
+                                            .map(File::getName)
+                                            .collect(Collectors.joining(", ")));
+
+        //peripheralDataHelper.deleteRecursive(getFilesDir());
+        //Log.d("MYLOG", "REMOVE DELETE FILES CALL!");
+
+        Log.d("MYLOG", "files/folders in internal storage base dir: " + Arrays.stream(getFilesDir().listFiles())
+                .map(File::getName)
+                .collect(Collectors.joining(", ")));
 
         handleIntent(getIntent());
     }

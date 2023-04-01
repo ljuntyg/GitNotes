@@ -12,11 +12,14 @@ import com.example.gitnotes.data.GitHelper;
 import com.example.gitnotes.data.Note;
 import com.example.gitnotes.data.NoteDbHelper;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,24 +138,52 @@ public class ButtonContainerViewModel extends ViewModel {
         return gitHelper;
     }
 
-    public void createTextFiles(File directory) {
-        List<Note> allNotes = notes.getValue();
+    public void readAndAddNotesFromDirectory(File file) {
+        LiveData<List<Note>> data = getNotes();
+        if (data == null || data.getValue() == null) {
+            return;
+        }
 
-        if (allNotes != null) {
-            for (Note note : allNotes) {
-                try {
-                    File file = new File(directory, note.getTitle() + ".txt");
-                    FileWriter writer = new FileWriter(file);
-                    writer.write(note.getBody());
-                    writer.close();
-                } catch (IOException e) {
-                    Log.e("MYLOG", "Failed to create text file for note " + note.getTitle(), e);
+        if (file.isDirectory()) {
+            File[] files = file.listFiles((dir, name) -> name.endsWith(".txt"));
+            if (files != null) {
+                for (File txtFile : files) {
+                    String[] parts = txtFile.getName().split("\\.", 2);
+                    String title = parts[0];
+                    String body = "";
+                    try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            body += line + "\n";
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Note note = new Note(title, body);
+                    boolean foundMatch = false;
+                    for (Note existingNote : data.getValue()) {
+                        if (!title.isBlank() && !existingNote.getTitle().isBlank() && title.equals(existingNote.getTitle())) {
+                            if (!body.isBlank() && !existingNote.getBody().isBlank() && !body.equals(existingNote.getBody())) {
+                                // Update the body of the existing note
+                                updateNote(existingNote, existingNote.getTitle(), body);
+                                foundMatch = true;
+                                break;
+                            }
+                        } else if (!body.isBlank() && !existingNote.getBody().isBlank() && body.equals(existingNote.getBody())) {
+                            if (!title.isBlank() && !existingNote.getTitle().isBlank() && !title.equals(existingNote.getTitle())) {
+                                // Update the title of the existing note
+                                updateNote(existingNote, title, existingNote.getBody());
+                                foundMatch = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!foundMatch) {
+                        // Note does not exist, add it to the data
+                        addNote(note);
+                    }
                 }
             }
         }
-
-        Log.d("MYLOG", "directory contents after txt file creation: " + Arrays.stream(directory.listFiles())
-                                                                                .map(File::getName)
-                                                                                .collect(Collectors.joining(", ")));
     }
 }

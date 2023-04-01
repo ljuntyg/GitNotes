@@ -2,14 +2,19 @@ package com.example.gitnotes.data;
 
 import android.util.Log;
 
+import com.example.gitnotes.viewmodels.ButtonContainerViewModel;
+
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.FileWriter;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -21,6 +26,7 @@ import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class GitHelper {
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -40,11 +46,12 @@ public class GitHelper {
         void onResult(int result);
     }
 
-    public void initGitRepository(String repoPath, String subfolderName, GitInitCallback callback) {
+    public void initGitRepository(String repoPath, String subfolderName, List<Note> allNotes, GitInitCallback callback) {
         executorService.submit(() -> {
             try {
                 File baseDir = new File(repoPath, subfolderName);
                 baseDir.mkdirs(); // Create the subfolder if it doesn't exist
+                createNoteTextFiles(baseDir, allNotes); // Create text files in new repo folder
                 File gitDir = new File(baseDir, ".git");
                 if (!gitDir.exists()) {
                     git = Git.init().setDirectory(baseDir).call();
@@ -70,15 +77,17 @@ public class GitHelper {
         return git;
     }
 
-    public void addToGit(Repository repository, String notePath, Runnable callback) {
+    public void addToGit(Repository repository, List<Note> allNotes, Runnable callback, Consumer<Exception> errorCallback) {
         executorService.submit(() -> {
             try (Git git = new Git(repository)) {
-                git.add().addFilepattern(notePath).call();
-            } catch (GitAPIException e) { // Exception not broad enough
-                e.printStackTrace();
+                Log.d("MYLOG", "repository.getDirectory() in addToGit: " + repository.getDirectory());
+                createNoteTextFiles(repository.getDirectory().getParentFile(), allNotes);
+                git.add().addFilepattern(".").call();
             } catch (Exception e) {
-                Log.d("MYLOG", "remove me :)");
                 e.printStackTrace();
+                if (errorCallback != null) {
+                    errorCallback.accept(e);
+                }
             }
 
             if (callback != null) {
@@ -87,12 +96,15 @@ public class GitHelper {
         });
     }
 
-    public void commitToGit(Repository repository, String commitMessage, Runnable callback) {
+    public void commitToGit(Repository repository, String commitMessage, Runnable callback, Consumer<Exception> errorCallback) {
         executorService.submit(() -> {
             try (Git git = new Git(repository)) {
                 git.commit().setMessage(commitMessage).call();
-            } catch (GitAPIException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                if (errorCallback != null) {
+                    errorCallback.accept(e);
+                }
             }
 
             if (callback != null) {
@@ -104,12 +116,14 @@ public class GitHelper {
     public void pushToGit(Repository repository, String remoteUrl, String personalAccessToken, Runnable successCallback, Consumer<Exception> errorCallback) {
         executorService.submit(() -> {
             try (Git git = new Git(repository)) {
+                Log.d("MYLOG", "current branch in push: " + repository.getBranch());
+                Log.d("MYLOG", "files in repository being pushed: " +  Arrays.toString(repository.getDirectory().getParentFile().listFiles()));
                 UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("token", personalAccessToken);
                 git.push().setCredentialsProvider(credentialsProvider).setRemote(remoteUrl).call();
                 if (successCallback != null) {
                     successCallback.run();
                 }
-            } catch (GitAPIException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 if (errorCallback != null) {
                     errorCallback.accept(e);
@@ -118,13 +132,18 @@ public class GitHelper {
         });
     }
 
-    public void pullFromGit(Repository repository, String remoteUrl, String personalAccessToken, Runnable callback) {
+    public void pullFromGit(Repository repository, String remoteUrl, String personalAccessToken, Runnable callback, Consumer<Exception> errorCallback) {
         executorService.submit(() -> {
             try (Git git = new Git(repository)) {
+                Log.d("MYLOG", "URL for pull: " + remoteUrl);
                 UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("token", personalAccessToken);
-                git.pull().setRemote(remoteUrl).setCredentialsProvider(credentialsProvider).call();
-            } catch (GitAPIException e) {
+                git.pull().setCredentialsProvider(credentialsProvider).call();
+            } catch (Exception e) {
                 e.printStackTrace();
+                if (errorCallback != null) {
+                    errorCallback.accept(e);
+                }
+                return;
             }
 
             if (callback != null) {
@@ -133,17 +152,17 @@ public class GitHelper {
         });
     }
 
-    public void cloneGitRepository(String remoteUrl, UsernamePasswordCredentialsProvider credentialsProvider, String clonePath, Runnable callback) {
+    public void cloneGitRepository(String remoteUrl, UsernamePasswordCredentialsProvider credentialsProvider, String clonePath, Runnable callback, Consumer<Exception> errorCallback) {
         executorService.submit(() -> {
             try {
-                Git.cloneRepository().setURI(remoteUrl).setDirectory(new File(clonePath)).setCredentialsProvider(credentialsProvider).call();
+                Git.cloneRepository().setURI(remoteUrl).setDirectory(new File(clonePath)).setCredentialsProvider(credentialsProvider).setBare(false).call();
                 Log.d("MYLOG", "post clone");
-            } catch (GitAPIException e) {
-                Log.d("MYLOG", "error, likely authorization issue");
-                e.printStackTrace();
             } catch (Exception e) {
-                Log.d("MYLOG", "Unhandled exception");
                 e.printStackTrace();
+                if (errorCallback != null) {
+                    errorCallback.accept(e);
+                }
+                return;
             }
 
             if (callback != null) {
@@ -164,7 +183,7 @@ public class GitHelper {
         return repoName.replaceFirst("\\.git$", "");
     }
 
-    public void scanForGitRepositories(File directory, Map<File, String> repositories, String ifMissingLink) {
+    public void scanForGitRepositories(ButtonContainerViewModel viewModel, File directory, String ifMissingLink) {
         File[] files = directory.listFiles();
 
         if (files != null) {
@@ -173,9 +192,12 @@ public class GitHelper {
                     if (new File(file, ".git").exists()) {
                         File repoPath = file.getAbsoluteFile();
                         String repoLink = readRepoMetadata(repoPath, ifMissingLink);
-                        repositories.put(file, repoLink);
+                        Log.d("MYLOG", "file found in scan for git repo: " + file);
+                        Map<File, String> newRepos = viewModel.getRepositories().getValue();
+                        newRepos.put(file, repoLink);
+                        viewModel.setRepositories(newRepos);
                     } else {
-                        scanForGitRepositories(file, repositories, ifMissingLink);
+                        scanForGitRepositories(viewModel, file, ifMissingLink);
                     }
                 }
             }
@@ -211,5 +233,32 @@ public class GitHelper {
         }
         File gitDir = new File(repo, ".git");
         return gitDir.exists() && gitDir.isDirectory();
+    }
+
+    public void createNoteTextFiles(File directory, List<Note> allNotes) {
+        if (allNotes != null) {
+            for (Note note : allNotes) {
+                try {
+                    String sanitizedTitle = sanitizeTitle(note.getTitle());
+                    if (sanitizedTitle.length() > 250) {
+                        sanitizedTitle = sanitizedTitle.substring(0, 250);
+                    }
+                    File file = new File(directory, sanitizedTitle + ".txt");
+                    FileWriter writer = new FileWriter(file);
+                    writer.write(note.getBody());
+                    writer.close();
+                } catch (IOException e) {
+                    Log.e("MYLOG", "Failed to create text file for note " + note.getTitle(), e);
+                }
+            }
+        }
+
+        Log.d("MYLOG", "directory contents after txt file creation (local directory scope): " + Arrays.stream(directory.listFiles())
+                .map(File::getName)
+                .collect(Collectors.joining(", ")));
+    }
+
+    private String sanitizeTitle(String title) {
+        return title.replaceAll("[\\\\/:*?\"<>|]", "_");
     }
 }
