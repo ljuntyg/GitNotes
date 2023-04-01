@@ -1,0 +1,142 @@
+[
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable-xxxhdpi_baseline_note_add_white_48___old.png.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable-xxxhdpi\\baseline_note_add_white_48___old.png"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable_github_mark_white.png.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable\\github_mark_white.png"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-anydpi-v33_ic_launcher.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-anydpi-v33\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable_delete_48px.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable\\delete_48px.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\xml_data_extraction_rules.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\xml\\data_extraction_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\layout_fragment_note.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\layout\\fragment_note.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable-xxxhdpi_baseline_note_add_black_48___old.png.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable-xxxhdpi\\baseline_note_add_black_48___old.png"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-mdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-mdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable-xxxhdpi_baseline_note_add_black_18___old.png.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable-xxxhdpi\\baseline_note_add_black_18___old.png"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\layout_fragment_button_container.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\layout\\fragment_button_container.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\layout_git_dialog_layout.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\layout\\git_dialog_layout.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-xhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable-v24_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable-v24\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable_edit_48px.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable\\edit_48px.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable_note_add_48px.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable\\note_add_48px.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable-xxxhdpi_baseline_note_add_white_18___old.png.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable-xxxhdpi\\baseline_note_add_white_18___old.png"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-xhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-xxxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-hdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-hdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-xxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "com.example.gitnotes.app-merged_res-34:/layout_git_dialog_layout.xml.flat",
+        "source": "com.example.gitnotes.app-main-36:/layout/git_dialog_layout.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\layout_spinner_item_layout.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\layout\\spinner_item_layout.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\xml_backup_rules.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\xml\\backup_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable_warning_48px.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable\\warning_48px.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\layout_token_and_username_dialog.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\layout\\token_and_username_dialog.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\layout_username_password_input_dialog.xml.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\layout\\username_password_input_dialog.xml"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-xxxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\mipmap-xxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-merged_res-34:\\drawable_github_mark.png.flat",
+        "source": "C:\\Users\\gbhko\\.gradle\\daemon\\7.5\\com.example.gitnotes.app-main-36:\\drawable\\github_mark.png"
+    }
+]
