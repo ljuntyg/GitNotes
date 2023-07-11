@@ -7,8 +7,8 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.example.gitnotes.MainFragment"
+        android:name="com.example.gitnotes.RecyclerViewFragment"
         android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_main">
+        tools:layout="@layout/fragment_recycler_view">
     </fragment>
 </navigation>
