@@ -5,13 +5,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gitnotes.databinding.FragmentRecyclerViewBinding
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
-/**
- * A simple [Fragment] subclass as the default destination in the navigation.
- */
 class RecyclerViewFragment : Fragment() {
 
     private var _binding: FragmentRecyclerViewBinding? = null
@@ -19,6 +19,8 @@ class RecyclerViewFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    private lateinit var notesViewModel: NotesViewModel
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -33,15 +35,23 @@ class RecyclerViewFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Notes test
-        val note1 = Note(null, "titleTest", "body test");
-        val note2 = Note(null, "another title", "BODY");
-        val note3 = Note(null, "title3", "testBody");
-        val noteList = listOf<Note>(note1, note2, note3);
+        // Initialize the NotesViewModel using custom NotesViewModelFactory
+        // required since NotesViewModel has non-empty constructor
+        val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
+        val repository = NotesRepository(notesDao)
+        val viewModelFactory = NotesViewModelFactory(repository)
+        notesViewModel = ViewModelProvider(this, viewModelFactory)[NotesViewModel::class.java]
 
-        val adapter = NoteListAdapter(noteList)
+        // Initialize RecyclerView with Adapter for notes
+        val adapter = NoteListAdapter(emptyList())
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = adapter
+
+        // Observe allNotes LiveData from the NotesViewModel
+        notesViewModel.allNotes.observe(viewLifecycleOwner) { notes ->
+            // Update the cached copy of the notes in the adapter.
+            notes?.let { adapter.notes = it }
+        }
 
         // Set up FAB click listener
         binding.fab.setOnClickListener { fabView ->

@@ -10,14 +10,12 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
 import androidx.navigation.fragment.NavHostFragment
-import androidx.room.Room
 import com.example.gitnotes.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var notesDatabase: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -32,12 +30,6 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
-
-        // Initialize app notesDatabase
-        notesDatabase = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "notes_database"
-        ).build()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
