@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_package = "com.example.gitnotes";
+
+message UserProfile {
+    string profileName = 1;
+
+    message RepoMap {
+        string name = 1;
+        string httpsLink = 2;
+    }
+
+    repeated RepoMap repoNameHTTPSMaps = 2;
+}
