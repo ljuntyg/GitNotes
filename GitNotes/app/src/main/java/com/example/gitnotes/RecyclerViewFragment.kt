@@ -7,9 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gitnotes.databinding.FragmentRecyclerViewBinding
-import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class RecyclerViewFragment : Fragment() {
@@ -36,14 +37,14 @@ class RecyclerViewFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Initialize the NotesViewModel using custom NotesViewModelFactory
-        // required since NotesViewModel has non-empty constructor
+        // which is required since NotesViewModel has non-empty constructor
         val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
         val repository = NotesRepository(notesDao)
         val viewModelFactory = NotesViewModelFactory(repository)
         notesViewModel = ViewModelProvider(this, viewModelFactory)[NotesViewModel::class.java]
 
         // Initialize RecyclerView with Adapter for notes
-        val adapter = NoteListAdapter(emptyList())
+        val adapter = NoteListAdapter(findNavController())
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = adapter
 
@@ -53,11 +54,20 @@ class RecyclerViewFragment : Fragment() {
             notes?.let { adapter.notes = it }
         }
 
+        /** Example of adding note. insert() will call the database repository
+            insert() which will launch a coroutine to insert into the DAO
+        val note1 = Note(null,"titleTEST", "body");
+        notesViewModel.insert(note1); */
+
         // Set up FAB click listener
-        binding.fab.setOnClickListener { fabView ->
-            Snackbar.make(fabView, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAnchorView(binding.fab)
-                .setAction("Action", null).show()
+        binding.fab.setOnClickListener {
+            val newNote = Note()
+            val job = notesViewModel.insert(newNote)
+            lifecycleScope.launch {
+                newNote.id = job.await().toInt()  // This will suspend until result is available
+                val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(newNote)
+                findNavController().navigate(action)
+            }
         }
     }
 

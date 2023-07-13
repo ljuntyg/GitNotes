@@ -8,34 +8,42 @@ import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.Database
 import android.content.Context
+import android.os.Parcelable
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Delete
 import androidx.room.Room
-import kotlinx.coroutines.CoroutineScope
+import androidx.room.Update
+import com.example.gitnotes.databinding.RecyclerViewRowBinding
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.parcelize.Parcelize
 
 /**
  * The Room database in this app is only for handling Note data,
  * so the database related methods are also defined here
  */
 
+// TODO: Figure out how to make id val without getting: "error: Cannot find setter for field."
+@Parcelize
 @Entity
 data class Note(
     // Automatically generates a unique key (id) for each Note (for the Room database)
-    @PrimaryKey(autoGenerate = true) val id: Int?,
-    val title: String,
-    val body: String
-)
+    @PrimaryKey(autoGenerate = true) var id: Int? = null,
+    var title: String = "",
+    var body: String = ""
+) : Parcelable
 
 // Any notes created during application should only be handled via this ViewModel which
 // will then pass any data through the NotesRepository to the DAO of the database
@@ -54,8 +62,22 @@ class NotesViewModel(private val repository: NotesRepository) : ViewModel() {
         }
     }
 
-    fun insert(note: Note) = viewModelScope.launch {
-        repository.insert(note)
+    fun insert(note: Note): Deferred<Long> {
+        return viewModelScope.async {
+            repository.insert(note)
+        }
+    }
+
+    fun update(note: Note) {
+        viewModelScope.launch {
+            repository.update(note)
+        }
+    }
+
+    fun delete(note: Note) {
+        viewModelScope.launch {
+            repository.delete(note)
+        }
     }
 }
 
@@ -75,25 +97,33 @@ class NotesViewModelFactory(private val repository: NotesRepository) : ViewModel
  * RecyclerView related members
  */
 
-class NoteListAdapter(notes: List<Note>) : RecyclerView.Adapter<NoteListAdapter.NoteViewHolder>() {
+class NoteListAdapter(private val navController: NavController) : RecyclerView.Adapter<NoteListAdapter.NoteViewHolder>() {
 
-    var notes: List<Note> = notes
+    var notes: List<Note> = listOf()
         set(value) {
             field = value
-            notifyDataSetChanged() // TODO: Change to more efficient solution
+            notifyDataSetChanged() // TODO: Change to more efficient solution, consider using ListAdapter for DiffUtil
         }
 
-    class NoteViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
-        val noteTextView: TextView = view.findViewById(R.id.text_view)
+    class NoteViewHolder(private val binding: RecyclerViewRowBinding, private val navController: NavController) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(note: Note) {
+            binding.textView.text = note.title
+            binding.root.setOnClickListener {
+                val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(note)
+                navController.navigate(action)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.recycler_view_row, parent, false)
-        return NoteViewHolder(view)
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val binding = RecyclerViewRowBinding.inflate(layoutInflater, parent, false)
+        return NoteViewHolder(binding, navController)
     }
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
-        holder.noteTextView.text = notes[position].title
+        val currentNote = notes[position]
+        holder.bind(currentNote)
     }
 
     override fun getItemCount() = notes.size
@@ -109,7 +139,13 @@ interface NotesDao {
     fun getAllNotes(): Flow<List<Note>>
 
     @Insert
-    fun insert(note: Note)
+    fun insert(note: Note): Long
+
+    @Update
+    fun update(note: Note)
+
+    @Delete
+    fun delete(note: Note)
 }
 
 // Uses singleton pattern so database can be created when needed and else be accessed when needed
@@ -134,15 +170,29 @@ abstract class NotesDatabase : RoomDatabase() {
 
 // Provides a layer between the DAO for the database and anything trying to access
 // that data, e.g. NotesViewModel which maintains all the notes during app run
+
+// WARNING: Might get "Cannot access database on the main thread...", use CoroutineScope to avoid
 class NotesRepository(private val notesDao: NotesDao) {
 
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
     val allNotes: Flow<List<Note>> = notesDao.getAllNotes()
 
-    fun insert(note: Note) {
-        CoroutineScope(Dispatchers.IO).launch {
+    suspend fun insert(note: Note): Long {
+        return withContext(Dispatchers.IO) {
             notesDao.insert(note)
+        }
+    }
+
+    suspend fun update(note: Note) {
+        withContext(Dispatchers.IO) {
+            notesDao.update(note)
+        }
+    }
+
+    suspend fun delete(note: Note) {
+        withContext(Dispatchers.IO) {
+            notesDao.delete(note)
         }
     }
 }
