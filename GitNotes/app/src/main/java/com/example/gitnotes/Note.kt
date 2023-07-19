@@ -9,24 +9,11 @@ import androidx.room.RoomDatabase
 import androidx.room.Database
 import android.content.Context
 import android.os.Parcelable
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Delete
 import androidx.room.Room
 import androidx.room.Update
-import com.example.gitnotes.databinding.RecyclerViewRowBinding
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 
@@ -45,94 +32,11 @@ data class Note(
     var body: String = ""
 ) : Parcelable
 
-// Any notes created during application should only be handled via this ViewModel which
-// will then pass any data through the NotesRepository to the DAO of the database
-class NotesViewModel(private val repository: NotesRepository) : ViewModel() {
-
-    // Use a backing property to hide the mutable LiveData from the UI
-    private val _allNotes = MutableLiveData<List<Note>>()
-    val allNotes: LiveData<List<Note>> get() = _allNotes
-
-    init {
-        // Automatically updates the list of notes when the database changes
-        viewModelScope.launch {
-            repository.allNotes.collect { notes ->
-                _allNotes.value = notes
-            }
-        }
-    }
-
-    fun insert(note: Note): Deferred<Long> {
-        return viewModelScope.async {
-            repository.insert(note)
-        }
-    }
-
-    fun update(note: Note) {
-        viewModelScope.launch {
-            repository.update(note)
-        }
-    }
-
-    fun delete(note: Note) {
-        viewModelScope.launch {
-            repository.delete(note)
-        }
-    }
-}
-
-// For ViewModel classes with non-empty constructor, ViewModelProvider
-// requires class implementing the ViewModelProvider.Factory interface
-class NotesViewModelFactory(private val repository: NotesRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(NotesViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return NotesViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
-
-/**
- * RecyclerView related members
- */
-
-class NoteListAdapter(private val navController: NavController) : RecyclerView.Adapter<NoteListAdapter.NoteViewHolder>() {
-
-    var notes: List<Note> = listOf()
-        set(value) {
-            field = value
-            notifyDataSetChanged() // TODO: Change to more efficient solution, consider using ListAdapter for DiffUtil
-        }
-
-    class NoteViewHolder(private val binding: RecyclerViewRowBinding, private val navController: NavController) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(note: Note) {
-            binding.textView.text = note.title
-            binding.root.setOnClickListener {
-                val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(note)
-                navController.navigate(action)
-            }
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
-        val layoutInflater = LayoutInflater.from(parent.context)
-        val binding = RecyclerViewRowBinding.inflate(layoutInflater, parent, false)
-        return NoteViewHolder(binding, navController)
-    }
-
-    override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
-        val currentNote = notes[position]
-        holder.bind(currentNote)
-    }
-
-    override fun getItemCount() = notes.size
-}
-
 /**
  * Room database related members
  */
 
+// WARNING: Only access DAO through the repository, not directly
 @Dao
 interface NotesDao {
     @Query("SELECT * FROM Note")
@@ -170,8 +74,6 @@ abstract class NotesDatabase : RoomDatabase() {
 
 // Provides a layer between the DAO for the database and anything trying to access
 // that data, e.g. NotesViewModel which maintains all the notes during app run
-
-// WARNING: Might get "Cannot access database on the main thread...", use CoroutineScope to avoid
 class NotesRepository(private val notesDao: NotesDao) {
 
     // Room executes all queries on a separate thread.

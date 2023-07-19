@@ -60,6 +60,7 @@ class NoteFragment : Fragment() {
 
         (requireActivity() as MenuHost).addMenuProvider(object: MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.clear()
                 menuInflater.inflate(R.menu.menu_note, menu)
             }
 
@@ -90,18 +91,9 @@ class NoteFragment : Fragment() {
         // Ensure Note exists in database, if so update it
         val allNotes = notesViewModel.allNotes.value
 
-        Log.d("MYLOG", "Current note: $note")
-        if (allNotes != null) {
-            for (note in allNotes) {
-                Log.d("MYLOG", "Note from allNotes: $note")
-            }
-        }
-
         if (allNotes != null && allNotes.any { n -> n.id == note.id }) {
             notesViewModel.update(note)
-            Log.d("MYLOG", "Updated note")
         } else {
-            Log.d("MYLOG", "Did not update note")
             // TODO: Better handling of this case, this case reached could mean Note has been deleted
         }
 
