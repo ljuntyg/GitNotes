@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class UserProfilesViewModel(private val repository: ProfilesReposRepository) : ViewModel() {
@@ -26,6 +25,12 @@ class UserProfilesViewModel(private val repository: ProfilesReposRepository) : V
                 _allUserProfiles.value = userProfilesList.map { repository.getUserProfile(it.profileName) }
                 Log.d("MYLOG", "Size of allUserProfiles: " + allUserProfiles.value?.size.toString())
             }
+        }
+    }
+
+    fun getUserProfileAsync(name: String): Deferred<UserProfile> {
+        return viewModelScope.async {
+            repository.getUserProfile(name)
         }
     }
 

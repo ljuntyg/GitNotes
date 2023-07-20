@@ -14,14 +14,6 @@
         <action
             android:id="@+id/action_recyclerViewFragment_to_noteFragment"
             app:destination="@id/note_fragment" />
-
-        <action
-            android:id="@+id/action_recyclerViewFragment_to_gitHandlingFragment"
-            app:destination="@id/git_handling_fragment" />
-
-        <action
-            android:id="@+id/action_recyclerViewFragment_to_gitLoginFragment"
-            app:destination="@id/git_login_fragment" />
     </fragment>
 
     <fragment
@@ -31,20 +23,6 @@
         <argument
             android:name="note"
             app:argType="com.example.gitnotes.Note" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/git_handling_fragment"
-        android:name="com.example.gitnotes.GitHandlingFragment">
-
-        <argument
-            android:name="user_profile"
-            app:argType="com.example.gitnotes.UserProfile" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/git_login_fragment"
-        android:name="com.example.gitnotes.GitLoginFragment">
     </fragment>
 
 </navigation>

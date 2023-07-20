@@ -26,7 +26,7 @@ class NotesViewModel(private val repository: NotesRepository) : ViewModel() {
         }
     }
 
-    fun insert(note: Note): Deferred<Long> {
+    fun insertAsync(note: Note): Deferred<Long> {
         return viewModelScope.async {
             repository.insert(note)
         }

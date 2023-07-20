@@ -53,7 +53,7 @@ class NoteFragment : Fragment() {
         val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
         val repository = NotesRepository(notesDao)
         val viewModelFactory = NotesViewModelFactory(repository)
-        notesViewModel = ViewModelProvider(requireParentFragment(), viewModelFactory)[NotesViewModel::class.java]
+        notesViewModel = ViewModelProvider(requireActivity(), viewModelFactory)[NotesViewModel::class.java]
 
         binding.editTextTitle.setText(note.title)
         binding.editTextBody.setText(note.body)

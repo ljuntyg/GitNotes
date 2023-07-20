@@ -11,6 +11,8 @@
     <string name="gitnotes">GitNotes</string>
     <string name="delete">Delete</string>
     <string name="github">GitHub</string>
+    <string name="selected_profile">Selected profile: %s</string>
+    <string name="confirm">Confirm</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

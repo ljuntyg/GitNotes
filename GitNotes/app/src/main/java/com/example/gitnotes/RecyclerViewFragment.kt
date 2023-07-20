@@ -1,7 +1,6 @@
 package com.example.gitnotes
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.Menu
@@ -16,7 +15,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gitnotes.databinding.FragmentRecyclerViewBinding
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 class RecyclerViewFragment : Fragment() {
@@ -48,14 +46,14 @@ class RecyclerViewFragment : Fragment() {
         val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
         val notesRepository = NotesRepository(notesDao)
         val notesViewModelFactory = NotesViewModelFactory(notesRepository)
-        notesViewModel = ViewModelProvider(this, notesViewModelFactory)[NotesViewModel::class.java]
+        notesViewModel = ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
 
         // Same as above but for the UserProfilesViewModel
         val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
         val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
         val userProfilesViewModelFactory = UserProfilesViewModelFactory(profilesReposRepository)
-        userProfilesViewModel = ViewModelProvider(this, userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
 
         // Initialize RecyclerView with Adapter for notes
         val adapter = NoteListAdapter(findNavController())
@@ -76,7 +74,7 @@ class RecyclerViewFragment : Fragment() {
         // Set up FAB click listener
         binding.fab.setOnClickListener {
             val newNote = Note()
-            val job = notesViewModel.insert(newNote)
+            val job = notesViewModel.insertAsync(newNote)
             lifecycleScope.launch {
                 newNote.id = job.await().toInt()  // This will suspend until result is available
                 val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(newNote)
@@ -95,11 +93,11 @@ class RecyclerViewFragment : Fragment() {
                 when (menuItem.itemId) {
                     R.id.action_git -> {
                         if (!userProfilesViewModel.loggedIn) {
-                            val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToGitLoginFragment()
-                            findNavController().navigate(action)
+                            val gitLoginDialog = GitLoginFragment()
+                            gitLoginDialog.show(requireActivity().supportFragmentManager, "GitLoginFragment")
                         } else {
-                            val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToGitHandlingFragment(userProfilesViewModel.selectedUserProfile)
-                            findNavController().navigate(action)
+                            val gitHandlingFragment = GitHandlingFragment(userProfilesViewModel.selectedUserProfile)
+                            gitHandlingFragment.show(requireActivity().supportFragmentManager, "GitHandlingFragment")
                         }
                         return true
                     }
