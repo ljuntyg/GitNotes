@@ -2,6 +2,7 @@ package com.example.gitnotes
 
 import android.content.Context
 import android.os.Parcelable
+import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
@@ -18,6 +19,7 @@ import androidx.room.Update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 
@@ -27,7 +29,6 @@ data class UserProfile(
     @PrimaryKey
     var profileName: String = "",
 
-    // This will be ignored by Room
     @Ignore
     var repositories: MutableList<Repository> = mutableListOf()
 ) : Parcelable
@@ -44,6 +45,7 @@ data class Repository(
     @ColumnInfo(name = "name")
     var name: String,
 
+    // TODO: Change from nullable to non-nullable?
     @ColumnInfo(name = "https_link")
     var httpsLink: String?
 ) : Parcelable
@@ -115,10 +117,13 @@ class ProfilesReposRepository(private val userProfilesDao: UserProfilesDao, priv
     fun getAllUserProfiles(): Flow<List<UserProfile>> =
         userProfilesDao.getAllUserProfiles()
 
-    suspend fun getUserProfile(name: String): UserProfile {
+    fun getRepositoriesForUser(profileName: String): Flow<List<Repository>> =
+        repositoriesDao.getRepositoriesForUser(profileName)
+
+    suspend fun getUserProfile(name: String): UserProfile? {
         return withContext(Dispatchers.IO) {
-            val userProfile = userProfilesDao.getUserProfile(name).first()
-            userProfile.repositories = repositoriesDao.getRepositoriesForUser(name).first().toMutableList()
+            val userProfile = userProfilesDao.getUserProfile(name).firstOrNull()
+            userProfile?.repositories = repositoriesDao.getRepositoriesForUser(name).first().toMutableList()
             userProfile
         }
     }
@@ -141,6 +146,32 @@ class ProfilesReposRepository(private val userProfilesDao: UserProfilesDao, priv
         withContext(Dispatchers.IO) {
             userProfile.repositories.forEach { repositoriesDao.delete(it) }
             userProfilesDao.delete(userProfile)
+        }
+    }
+
+    suspend fun deleteRepoForUser(repo: Repository, userProfile: UserProfile): Boolean {
+        return withContext(Dispatchers.IO) {
+            val userHasRepo = userProfile.repositories.contains(repo)
+            if (!userHasRepo) {
+                Log.d("MYLOG", "ERROR: Attempt to delete repo not belonging to given user")
+                false
+            } else {
+                repositoriesDao.delete(repo)
+                true
+            }
+        }
+    }
+
+    suspend fun insertRepoForUser(repo: Repository, userProfile: UserProfile): Boolean {
+        return withContext(Dispatchers.IO) {
+            val userExists = getUserProfile(userProfile.profileName) != null
+            if (!userExists) {
+                Log.d("MYLOG", "ERROR: Attempt to add repo to non-existent user")
+                false
+            } else {
+                repositoriesDao.insert(repo)
+                true
+            }
         }
     }
 }

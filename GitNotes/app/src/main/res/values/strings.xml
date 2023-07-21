@@ -13,6 +13,10 @@
     <string name="github">GitHub</string>
     <string name="selected_profile">Selected profile: %s</string>
     <string name="confirm">Confirm</string>
+    <string name="delete_repo">Delete Repository</string>
+    <string name="add_repo">Add Repository</string>
+    <string name="push">Push</string>
+    <string name="pull">Pull</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

@@ -10,8 +10,8 @@ class LoginViewPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateA
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> GitLoginInputFragment.newInstance("GitHub Username and Password Login", "Login using your GitHub username and password via HTTPS.", "GitHub Username", "Password", "Login")
-            else -> GitLoginInputFragment.newInstance("GitHub PAT (Personal Access Token) Login", "Login using a Personal Access Token via HTTPS.", "Local profile name", "Personal Access Token", "Login")
+            0 -> GitLoginInputFragment.newInstanceRemoteLogin("Clone remote repository with PAT", "Login using a PAT (Personal Access Token) and clone a given remote repository via an HTTPS link.", "Local profile name", "Personal Access Token", "Repository HTTPS link", "Clone Remote Repository")
+            else -> GitLoginInputFragment.newInstanceNewLocal("Create new local repository", "Create a new local Git repository. The repository name must match any remote repository name that is being pushed to.", "Local profile name", "Local repository name", "Create Local Repository")
         }
     }
 }

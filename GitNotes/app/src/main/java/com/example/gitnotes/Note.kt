@@ -17,17 +17,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 
-/**
- * The Room database in this app is only for handling Note data,
- * so the database related methods are also defined here
- */
-
 // TODO: Figure out how to make id val without getting: "error: Cannot find setter for field."
 @Parcelize
 @Entity
 data class Note(
     // Automatically generates a unique key (id) for each Note (for the Room database)
-    @PrimaryKey(autoGenerate = true) var id: Int? = null,
+    @PrimaryKey(autoGenerate = true)
+    var id: Long = 0,
+
     var title: String = "",
     var body: String = ""
 ) : Parcelable

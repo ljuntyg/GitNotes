@@ -52,7 +52,7 @@ class RecyclerViewFragment : Fragment() {
         val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
         val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(profilesReposRepository)
+        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
         userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
 
         // Initialize RecyclerView with Adapter for notes
@@ -76,7 +76,8 @@ class RecyclerViewFragment : Fragment() {
             val newNote = Note()
             val job = notesViewModel.insertAsync(newNote)
             lifecycleScope.launch {
-                newNote.id = job.await().toInt()  // This will suspend until result is available
+                newNote.id =
+                    job.await().toInt().toLong()  // This will suspend until result is available
                 val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(newNote)
                 findNavController().navigate(action)
             }
@@ -96,7 +97,7 @@ class RecyclerViewFragment : Fragment() {
                             val gitLoginDialog = GitLoginFragment()
                             gitLoginDialog.show(requireActivity().supportFragmentManager, "GitLoginFragment")
                         } else {
-                            val gitHandlingFragment = GitHandlingFragment(userProfilesViewModel.selectedUserProfile)
+                            val gitHandlingFragment = GitHandlingFragment()
                             gitHandlingFragment.show(requireActivity().supportFragmentManager, "GitHandlingFragment")
                         }
                         return true

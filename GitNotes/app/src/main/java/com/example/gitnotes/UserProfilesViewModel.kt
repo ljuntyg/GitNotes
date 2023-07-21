@@ -1,5 +1,6 @@
 package com.example.gitnotes
 
+import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,25 +11,28 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-class UserProfilesViewModel(private val repository: ProfilesReposRepository) : ViewModel() {
+// Pass application to then get application context to pass to creation of SelectedUserPrefs singleton
+class UserProfilesViewModel(application: Application, private val repository: ProfilesReposRepository) : ViewModel() {
     // Use a backing property to hide the mutable LiveData from the UI
     private val _allUserProfiles = MutableLiveData<List<UserProfile>>()
     val allUserProfiles: LiveData<List<UserProfile>> get() = _allUserProfiles
 
     var loggedIn = false
+    val selectedUserPrefs: SelectedUserPrefs = SelectedUserPrefs.getInstance(application)
+    // TODO: Replace with some sort of LiveData/update on repository changes?
     lateinit var selectedUserProfile: UserProfile
 
     init {
         // Automatically updates the list of user profiles when the database changes
         viewModelScope.launch {
             repository.getAllUserProfiles().collect { userProfilesList ->
-                _allUserProfiles.value = userProfilesList.map { repository.getUserProfile(it.profileName) }
+                _allUserProfiles.value = userProfilesList.mapNotNull { repository.getUserProfile(it.profileName) }
                 Log.d("MYLOG", "Size of allUserProfiles: " + allUserProfiles.value?.size.toString())
             }
         }
     }
 
-    fun getUserProfileAsync(name: String): Deferred<UserProfile> {
+    fun getUserProfileAsync(name: String): Deferred<UserProfile?> {
         return viewModelScope.async {
             repository.getUserProfile(name)
         }
@@ -51,15 +55,27 @@ class UserProfilesViewModel(private val repository: ProfilesReposRepository) : V
             repository.delete(userProfile)
         }
     }
+
+    fun deleteRepoForUserAsync(repo: Repository, userProfile: UserProfile): Deferred<Boolean> {
+        return viewModelScope.async {
+            repository.deleteRepoForUser(repo, userProfile)
+        }
+    }
+
+    fun insertRepoForUserAsync(repo: Repository, userProfile: UserProfile): Deferred<Boolean> {
+        return viewModelScope.async {
+            repository.insertRepoForUser(repo, userProfile)
+        }
+    }
 }
 
 // For ViewModel classes with non-empty constructor, ViewModelProvider
 // requires class implementing the ViewModelProvider.Factory interface
-class UserProfilesViewModelFactory(private val repository: ProfilesReposRepository) : ViewModelProvider.Factory {
+class UserProfilesViewModelFactory(private val application: Application, private val repository: ProfilesReposRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(UserProfilesViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return UserProfilesViewModel(repository) as T
+            return UserProfilesViewModel(application, repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

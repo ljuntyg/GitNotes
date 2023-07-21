@@ -1,17 +1,25 @@
 package com.example.gitnotes
 
-import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.gitnotes.databinding.FragmentGitHandlingBinding
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class GitHandlingFragment(private var userProfile: UserProfile) : DialogFragment() {
+class GitHandlingFragment : DialogFragment() {
     private var _binding: FragmentGitHandlingBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var userProfilesViewModel: UserProfilesViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -20,6 +28,167 @@ class GitHandlingFragment(private var userProfile: UserProfile) : DialogFragment
         // Inflate the layout for this fragment
         _binding = FragmentGitHandlingBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Get reference to UserProfilesViewModel
+        val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
+        val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
+        val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
+        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
+        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+
+        // Populate the spinner
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, mutableListOf<String>())
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.repoSpinner.adapter = adapter
+
+        // TODO: Find way to do this via ViewModel, don't access DAO here
+        // Observe the flow of the Repository lists for the selectedUser directly from the DAO
+        viewLifecycleOwner.lifecycleScope.launch {
+            val selectedUserProfile = userProfilesViewModel.selectedUserProfile
+            selectedUserProfile.let { userProfile ->
+                ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao().getRepositoriesForUser(userProfile.profileName).collect { repositories ->
+                    // Update the data for the spinner
+                    val updatedData = mutableListOf("New repository")
+                    updatedData.addAll(repositories.map { repository -> repository.name })
+
+                    // Update the spinner on the main thread
+                    withContext(Dispatchers.Main) {
+                        adapter.clear()
+                        adapter.addAll(updatedData)
+                    }
+                }
+            }
+        }
+
+        // Set spinner on item selected listener
+        binding.repoSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) =
+                if (position == 0) { // "New repository" selected
+                    binding.editTextHandling.isEnabled = true
+                    binding.editTextHandling.hint = "Repository name"
+
+                    binding.editTextHandling2.visibility = View.VISIBLE
+                    binding.editTextHandling2.hint = "Repository link"
+
+                    binding.pullButton.visibility = View.GONE
+                    binding.pushButton.visibility = View.GONE
+                    binding.deleteButton.visibility = View.GONE
+                    binding.buttonAdd.visibility = View.VISIBLE
+                } else { // Some repository selected
+                    val theRepo: Repository? = userProfilesViewModel.selectedUserProfile.repositories.find {
+                            repo -> repo.name == binding.repoSpinner.selectedItem.toString()
+                    }
+                    if (theRepo == null) {
+                        binding.editTextHandling.hint = "ERROR: Selected repository not found"
+                    } else {
+                        val link = theRepo.httpsLink
+                        if (link == null) {
+                            binding.editTextHandling.hint = "ERROR: Null HTTPS link"
+                        } else if (link.isEmpty()) {
+                            binding.editTextHandling.hint = "This repository lacks an HTTPS link"
+                        } else {
+                            binding.editTextHandling.hint = link
+                        }
+                    }
+
+                    binding.editTextHandling.isEnabled = false
+                    binding.pullButton.visibility = View.VISIBLE
+                    binding.pushButton.visibility = View.VISIBLE
+                    binding.deleteButton.visibility = View.VISIBLE
+                    binding.buttonAdd.visibility = View.GONE
+                    binding.editTextHandling2.visibility = View.GONE
+                }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        binding.deleteButton.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val theRepo: Repository? = userProfilesViewModel.selectedUserProfile.repositories.find {
+                        repo -> repo.name == binding.repoSpinner.selectedItem
+                }
+                if (theRepo == null) {
+                    Snackbar.make(
+                        view,
+                        "ERROR: Repository to delete not found",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                } else {
+                    val deletionSuccessful = userProfilesViewModel.deleteRepoForUserAsync(theRepo, userProfilesViewModel.selectedUserProfile).await()
+                    if (deletionSuccessful) {
+                        Snackbar.make(
+                            view,
+                            "Deleted repository ${theRepo.name}",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Snackbar.make(
+                            view,
+                            "Failed to delete repository",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                binding.editTextHandling.setText("")
+            }
+        }
+
+        binding.buttonAdd.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val repoName = binding.editTextHandling.text.toString()
+                val repoLink = binding.editTextHandling2.text.toString()
+                val selectedUser = userProfilesViewModel.selectedUserProfile
+                if (repoName.isEmpty()) {
+                    Snackbar.make(
+                        view,
+                        "Please enter a name for the repository",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                } else {
+                    val newRepo = Repository(
+                        profileName = selectedUser.profileName,
+                        name = repoName,
+                        httpsLink = repoLink)
+                    val insertionSuccessful = userProfilesViewModel.insertRepoForUserAsync(newRepo, selectedUser).await()
+                    if (insertionSuccessful) {
+
+                        // TODO: This is a stopgap fix to ensure the repository changes are visible in selectedUserProfile in ViewModel
+                        val newSelectedUserProfile = userProfilesViewModel.getUserProfileAsync(selectedUser.profileName).await()
+                        if (newSelectedUserProfile != null) {
+                            userProfilesViewModel.selectedUserProfile = newSelectedUserProfile
+                        } else {
+                            Snackbar.make(
+                                view,
+                                "ERROR: Unable to find selectedUserProfile, unable to update with new repository",
+                                Snackbar.LENGTH_SHORT
+                            ).show()
+                        }
+                        // TODO: Stopgap fix ends here
+
+                        Snackbar.make(
+                            view,
+                            "Created new repository $repoName",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Snackbar.make(
+                            view,
+                            "Failed to create new repository",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                binding.editTextHandling.setText("")
+                binding.editTextHandling2.setText("")
+            }
+        }
     }
 
     override fun onDestroyView() {

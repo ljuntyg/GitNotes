@@ -36,7 +36,7 @@ class GitLoginFragment : DialogFragment() {
         val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
         val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(profilesReposRepository)
+        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
         userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
 
         // Populate the spinner
@@ -72,11 +72,20 @@ class GitLoginFragment : DialogFragment() {
         binding.buttonConfirm.setOnClickListener {
             lifecycleScope.launch {
                 val selectedUserProfile = userProfilesViewModel.getUserProfileAsync(binding.userSpinner.selectedItem.toString()).await()
+                if (selectedUserProfile == null) {
+                    Snackbar.make(
+                        requireActivity().findViewById(android.R.id.content),
+                        "Unable to find profile ${binding.userSpinner.selectedItem}, unable to login",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
                 userProfilesViewModel.selectedUserProfile = selectedUserProfile
                 userProfilesViewModel.loggedIn = true
                 Snackbar.make(
                     requireActivity().findViewById(android.R.id.content),
-                    "Logged in as ${binding.userSpinner.selectedItem}",
+                    "Logged in as ${selectedUserProfile.profileName}",
                     Snackbar.LENGTH_SHORT
                 ).show()
                 dismiss()
