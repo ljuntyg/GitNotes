@@ -8,8 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // Pass application to then get application context to pass to creation of SelectedUserPrefs singleton
 class UserProfilesViewModel(application: Application, private val repository: ProfilesReposRepository) : ViewModel() {
@@ -17,10 +20,14 @@ class UserProfilesViewModel(application: Application, private val repository: Pr
     private val _allUserProfiles = MutableLiveData<List<UserProfile>>()
     val allUserProfiles: LiveData<List<UserProfile>> get() = _allUserProfiles
 
+    private val _selectedUserProfile = MutableLiveData<UserProfile>()
+    val selectedUserProfile: LiveData<UserProfile> get() = _selectedUserProfile
+
+    private val _selectedUserRepositories = MutableLiveData<List<Repository>>()
+    val selectedUserRepositories: LiveData<List<Repository>> get() = _selectedUserRepositories
+
     var loggedIn = false
     val selectedUserPrefs: SelectedUserPrefs = SelectedUserPrefs.getInstance(application)
-    // TODO: Replace with some sort of LiveData/update on repository changes?
-    lateinit var selectedUserProfile: UserProfile
 
     init {
         // Automatically updates the list of user profiles when the database changes
@@ -28,6 +35,18 @@ class UserProfilesViewModel(application: Application, private val repository: Pr
             repository.getAllUserProfiles().collect { userProfilesList ->
                 _allUserProfiles.value = userProfilesList.mapNotNull { repository.getUserProfile(it.profileName) }
                 Log.d("MYLOG", "Size of allUserProfiles: " + allUserProfiles.value?.size.toString())
+            }
+        }
+    }
+
+    fun setSelectedUserProfile(userProfile: UserProfile) {
+        _selectedUserProfile.value = userProfile
+
+        viewModelScope.launch {
+            repository.getRepositoriesForUser(userProfile.profileName).collect { repositoriesList ->
+                withContext(Dispatchers.Main) {
+                    _selectedUserRepositories.value = repositoriesList
+                }
             }
         }
     }

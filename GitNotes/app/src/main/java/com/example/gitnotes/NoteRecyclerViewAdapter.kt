@@ -18,7 +18,7 @@ class NoteListAdapter(private val navController: NavController) : RecyclerView.A
         fun bind(note: Note) {
             binding.textView.text = note.title
             binding.root.setOnClickListener {
-                val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(note)
+                val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(note, false)
                 navController.navigate(action)
             }
         }

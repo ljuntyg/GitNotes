@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gitnotes.databinding.FragmentRecyclerViewBinding
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 class RecyclerViewFragment : Fragment() {
@@ -78,7 +79,7 @@ class RecyclerViewFragment : Fragment() {
             lifecycleScope.launch {
                 newNote.id =
                     job.await().toInt().toLong()  // This will suspend until result is available
-                val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(newNote)
+                val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(newNote, true)
                 findNavController().navigate(action)
             }
         }

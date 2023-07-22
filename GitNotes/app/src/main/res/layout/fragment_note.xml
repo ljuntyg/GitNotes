@@ -36,7 +36,5 @@
             android:textSize="18sp"
             android:importantForAutofill="no"
             android:background="@null"/>
-
     </LinearLayout>
-
 </ScrollView>

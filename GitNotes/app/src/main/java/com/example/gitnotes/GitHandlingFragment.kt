@@ -1,6 +1,9 @@
 package com.example.gitnotes
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,6 +36,9 @@ class GitHandlingFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // This ensures that the custom white background with rounded corners is what's visible
+        dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
         // Get reference to UserProfilesViewModel
         val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
         val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
@@ -41,27 +47,20 @@ class GitHandlingFragment : DialogFragment() {
         userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
 
         // Populate the spinner
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, mutableListOf<String>())
+        val adapter = CustomSpinnerAdapter(requireContext(), android.R.layout.simple_spinner_item, mutableListOf<String>())
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.repoSpinner.adapter = adapter
 
         // TODO: Find way to do this via ViewModel, don't access DAO here
         // Observe the flow of the Repository lists for the selectedUser directly from the DAO
-        viewLifecycleOwner.lifecycleScope.launch {
-            val selectedUserProfile = userProfilesViewModel.selectedUserProfile
-            selectedUserProfile.let { userProfile ->
-                ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao().getRepositoriesForUser(userProfile.profileName).collect { repositories ->
-                    // Update the data for the spinner
-                    val updatedData = mutableListOf("New repository")
-                    updatedData.addAll(repositories.map { repository -> repository.name })
+        userProfilesViewModel.selectedUserRepositories.observe(viewLifecycleOwner) { repositories ->
+            // Update the data for the spinner
+            val updatedData = mutableListOf("New repository")
+            updatedData.addAll(repositories.map { repository -> repository.name })
 
-                    // Update the spinner on the main thread
-                    withContext(Dispatchers.Main) {
-                        adapter.clear()
-                        adapter.addAll(updatedData)
-                    }
-                }
-            }
+            // Update the spinner
+            adapter.clear()
+            adapter.addAll(updatedData)
         }
 
         // Set spinner on item selected listener
@@ -79,7 +78,7 @@ class GitHandlingFragment : DialogFragment() {
                     binding.deleteButton.visibility = View.GONE
                     binding.buttonAdd.visibility = View.VISIBLE
                 } else { // Some repository selected
-                    val theRepo: Repository? = userProfilesViewModel.selectedUserProfile.repositories.find {
+                    val theRepo: Repository? = userProfilesViewModel.selectedUserRepositories.value?.find {
                             repo -> repo.name == binding.repoSpinner.selectedItem.toString()
                     }
                     if (theRepo == null) {
@@ -108,7 +107,7 @@ class GitHandlingFragment : DialogFragment() {
 
         binding.deleteButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                val theRepo: Repository? = userProfilesViewModel.selectedUserProfile.repositories.find {
+                val theRepo: Repository? = userProfilesViewModel.selectedUserRepositories.value!!.find {
                         repo -> repo.name == binding.repoSpinner.selectedItem
                 }
                 if (theRepo == null) {
@@ -118,7 +117,7 @@ class GitHandlingFragment : DialogFragment() {
                         Snackbar.LENGTH_SHORT
                     ).show()
                 } else {
-                    val deletionSuccessful = userProfilesViewModel.deleteRepoForUserAsync(theRepo, userProfilesViewModel.selectedUserProfile).await()
+                    val deletionSuccessful = userProfilesViewModel.deleteRepoForUserAsync(theRepo, userProfilesViewModel.selectedUserProfile.value!!).await()
                     if (deletionSuccessful) {
                         Snackbar.make(
                             view,
@@ -142,7 +141,7 @@ class GitHandlingFragment : DialogFragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val repoName = binding.editTextHandling.text.toString()
                 val repoLink = binding.editTextHandling2.text.toString()
-                val selectedUser = userProfilesViewModel.selectedUserProfile
+                val selectedUser = userProfilesViewModel.selectedUserProfile.value!!
                 if (repoName.isEmpty()) {
                     Snackbar.make(
                         view,
@@ -157,20 +156,6 @@ class GitHandlingFragment : DialogFragment() {
                         httpsLink = repoLink)
                     val insertionSuccessful = userProfilesViewModel.insertRepoForUserAsync(newRepo, selectedUser).await()
                     if (insertionSuccessful) {
-
-                        // TODO: This is a stopgap fix to ensure the repository changes are visible in selectedUserProfile in ViewModel
-                        val newSelectedUserProfile = userProfilesViewModel.getUserProfileAsync(selectedUser.profileName).await()
-                        if (newSelectedUserProfile != null) {
-                            userProfilesViewModel.selectedUserProfile = newSelectedUserProfile
-                        } else {
-                            Snackbar.make(
-                                view,
-                                "ERROR: Unable to find selectedUserProfile, unable to update with new repository",
-                                Snackbar.LENGTH_SHORT
-                            ).show()
-                        }
-                        // TODO: Stopgap fix ends here
-
                         Snackbar.make(
                             view,
                             "Created new repository $repoName",

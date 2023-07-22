@@ -85,7 +85,7 @@ class GitLoginInputFragment : Fragment() {
                 val newProfile = UserProfile(profileName, mutableListOf(newRepository))
 
                 userProfilesViewModel.insert(newProfile)
-                userProfilesViewModel.selectedUserProfile = newProfile
+                userProfilesViewModel.setSelectedUserProfile(newProfile)
                 userProfilesViewModel.loggedIn = true
                 userProfilesViewModel.selectedUserPrefs.insertOrReplace(profileName, "")
 

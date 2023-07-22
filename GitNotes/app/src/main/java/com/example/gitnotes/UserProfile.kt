@@ -151,7 +151,7 @@ class ProfilesReposRepository(private val userProfilesDao: UserProfilesDao, priv
 
     suspend fun deleteRepoForUser(repo: Repository, userProfile: UserProfile): Boolean {
         return withContext(Dispatchers.IO) {
-            val userHasRepo = userProfile.repositories.contains(repo)
+            val userHasRepo = getRepositoriesForUser(userProfile.profileName).first().contains(repo)
             if (!userHasRepo) {
                 Log.d("MYLOG", "ERROR: Attempt to delete repo not belonging to given user")
                 false

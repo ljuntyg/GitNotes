@@ -13,7 +13,11 @@
 
         <action
             android:id="@+id/action_recyclerViewFragment_to_noteFragment"
-            app:destination="@id/note_fragment" />
+            app:destination="@id/note_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
 
     <fragment
@@ -22,7 +26,10 @@
 
         <argument
             android:name="note"
-            app:argType="com.example.gitnotes.Note" />
-    </fragment>
+            app:argType="com.example.gitnotes.Note"/>
 
+        <argument
+            android:name="new_note"
+            app:argType="boolean"/>
+    </fragment>
 </navigation>

@@ -1,5 +1,7 @@
 package com.example.gitnotes
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -32,6 +34,9 @@ class GitLoginFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // This ensures that the custom white background with rounded corners is what's visible
+        dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
         // Get reference to UserProfilesViewModel
         val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
         val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
@@ -46,7 +51,7 @@ class GitLoginFragment : DialogFragment() {
                 val data = mutableListOf("New user profile")
                 data.addAll(profiles.map { profile -> profile.profileName })
                 val adapter =
-                    ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, data)
+                    CustomSpinnerAdapter(requireContext(), android.R.layout.simple_spinner_item, data)
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 binding.userSpinner.adapter = adapter
             }
@@ -81,7 +86,7 @@ class GitLoginFragment : DialogFragment() {
                     return@launch
                 }
 
-                userProfilesViewModel.selectedUserProfile = selectedUserProfile
+                userProfilesViewModel.setSelectedUserProfile(selectedUserProfile)
                 userProfilesViewModel.loggedIn = true
                 Snackbar.make(
                     requireActivity().findViewById(android.R.id.content),

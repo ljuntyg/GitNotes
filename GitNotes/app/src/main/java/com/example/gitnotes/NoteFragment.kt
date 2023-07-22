@@ -25,6 +25,8 @@ class NoteFragment : Fragment() {
     private lateinit var note: Note
     private lateinit var notesViewModel: NotesViewModel
 
+    private var newNote: Boolean = false
+
     // Used to handle getParcelable(String key) deprecation (deprecated in API level 33)
     // in favor of the new getParcelable(String key, Class class) if version >= API 33
     private inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
@@ -36,6 +38,7 @@ class NoteFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let { // See nav_graph.xml for fragments passing data to this Fragment
             note = it.parcelable("note")?: Note()
+            newNote = it.getBoolean("new_note")
         }
     }
 
@@ -49,6 +52,14 @@ class NoteFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (newNote) {
+            Snackbar.make(
+                view,
+                "New note created",
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
 
         val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
         val repository = NotesRepository(notesDao)
