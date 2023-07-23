@@ -6,20 +6,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="12dp"
-    android:background="@drawable/rounded_bg"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    android:background="@drawable/rounded_bg">
 
     <Spinner
         android:id="@+id/repo_spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        android:minHeight="48dp" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_view_handling"
@@ -29,9 +22,6 @@
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="32dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/repo_spinner"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp">
 
@@ -74,7 +64,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/push_button"
                 app:layout_constraintTop_toBottomOf="@id/edit_text_handling"
-                app:icon="@drawable/arrow_downward_48px"/>
+                app:icon="@drawable/arrow_downward_48px" />
 
             <Button
                 android:id="@+id/push_button"
@@ -87,7 +77,7 @@
                 app:layout_constraintStart_toEndOf="@id/pull_button"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/edit_text_handling"
-                app:icon="@drawable/arrow_upward_48px"/>
+                app:icon="@drawable/arrow_upward_48px" />
 
             <Button
                 android:id="@+id/delete_button"
@@ -101,7 +91,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/pull_button"
                 android:backgroundTint="#FF0000"
-                app:icon="@drawable/delete_48px"/>
+                app:icon="@drawable/delete_48px" />
 
             <Button
                 android:id="@+id/button_add"
@@ -116,7 +106,10 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/edit_text_handling2"
                 android:backgroundTint="#00FF00"
-                app:icon="@drawable/add_48px"/>
+                app:icon="@drawable/add_48px" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
+
     </androidx.cardview.widget.CardView>
+
 </LinearLayout>

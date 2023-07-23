@@ -95,7 +95,7 @@ class RecyclerViewFragment : Fragment() {
                 when (menuItem.itemId) {
                     R.id.action_git -> {
                         if (!userProfilesViewModel.loggedIn) {
-                            val gitLoginDialog = GitLoginFragment()
+                            val gitLoginDialog = GitLoginFragment(Repository(profileName = "", name = "", httpsLink = ""))
                             gitLoginDialog.show(requireActivity().supportFragmentManager, "GitLoginFragment")
                         } else {
                             val gitHandlingFragment = GitHandlingFragment()

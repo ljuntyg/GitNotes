@@ -3,6 +3,7 @@ package com.example.gitnotes
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -172,6 +173,25 @@ class GitHandlingFragment : DialogFragment() {
 
                 binding.editTextHandling.setText("")
                 binding.editTextHandling2.setText("")
+            }
+        }
+
+        binding.pullButton.setOnClickListener {
+            if (userProfilesViewModel.selectedUserPrefs.getCredentials().first == userProfilesViewModel.selectedUserProfile.value?.profileName
+                && userProfilesViewModel.selectedUserPrefs.getCredentials().second?.isNotEmpty() == true
+            ) {
+                Log.d("MYLOG", "Credentials matching user found")
+                // TODO: Pull with credentials
+            } else {
+                var selectedRepository = userProfilesViewModel.selectedUserRepositories.value?.find {
+                        repo -> repo.name == binding.repoSpinner.selectedItem.toString()
+                }
+
+                selectedRepository = selectedRepository ?: Repository(profileName = "", name = "", httpsLink = "")
+
+                // Open login fragment
+                val loginFragment = GitLoginFragment(selectedRepository)
+                loginFragment.show(requireActivity().supportFragmentManager, "GitLoginFragment")
             }
         }
     }

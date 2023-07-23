@@ -45,9 +45,8 @@ data class Repository(
     @ColumnInfo(name = "name")
     var name: String,
 
-    // TODO: Change from nullable to non-nullable?
     @ColumnInfo(name = "https_link")
-    var httpsLink: String?
+    var httpsLink: String
 ) : Parcelable
 
 /**
