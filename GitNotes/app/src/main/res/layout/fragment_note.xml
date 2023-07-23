@@ -18,7 +18,7 @@
             android:hint="@string/title"
             android:inputType="text"
             android:paddingBottom="24dp"
-            android:textSize="36sp"
+            android:textSize="@dimen/text_size_huge_plus"
             android:importantForAutofill="no"
             android:textStyle="bold"/>
 
@@ -33,7 +33,7 @@
             android:overScrollMode="ifContentScrolls"
             android:padding="10dp"
             android:scrollbars="vertical"
-            android:textSize="18sp"
+            android:textSize="@dimen/text_size_medium_plus"
             android:importantForAutofill="no"
             android:background="@null"/>
     </LinearLayout>

@@ -17,6 +17,9 @@
     <string name="add_repo">Add Repository</string>
     <string name="push">Push</string>
     <string name="pull">Pull</string>
+    <string name="repo_name">Repository name</string>
+    <string name="repo_link">Repository HTTPS link</string>
+    <string name="no_repo_link">No HTTPS link for repository</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

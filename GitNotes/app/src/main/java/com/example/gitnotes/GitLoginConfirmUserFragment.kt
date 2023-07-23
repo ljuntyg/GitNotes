@@ -19,6 +19,8 @@ class GitLoginConfirmUserFragment : Fragment() {
 
     private lateinit var userProfilesViewModel: UserProfilesViewModel
 
+    private lateinit var profileName: String
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -39,7 +41,7 @@ class GitLoginConfirmUserFragment : Fragment() {
 
         binding.buttonLoginConfirm.setOnClickListener {
             userProfilesViewModel.viewModelScope.launch {
-                val userProfile = userProfilesViewModel.getUserProfileAsync(binding.textViewLoginConfirm.text.toString()).await()
+                val userProfile = userProfilesViewModel.getUserProfileAsync(profileName).await()
                 if (userProfile == null) {
                     Snackbar.make(
                         view,
@@ -48,7 +50,11 @@ class GitLoginConfirmUserFragment : Fragment() {
                     ).show()
                 } else {
                     userProfilesViewModel.setSelectedUserProfile(userProfile)
-                    userProfilesViewModel.selectedUserPrefs.insertOrReplace(userProfile.profileName, "")
+                    // If selected user does not have stored credentials, then overwrite the last user's token with a new empty token,
+                    // if selected user DOES have stored credentials, then nothing will be done and the token will be kept as is for user
+                    if (userProfilesViewModel.selectedUserPrefs.getCredentials().first != userProfile.profileName) {
+                        userProfilesViewModel.selectedUserPrefs.insertOrReplace(userProfile.profileName, "")
+                    }
                     userProfilesViewModel.loggedIn = true
 
                     Snackbar.make(
@@ -69,6 +75,7 @@ class GitLoginConfirmUserFragment : Fragment() {
     }
 
     fun setConfirmText(text: String) {
-        binding.textViewLoginConfirm.text = text
+        binding.textViewLoginConfirm.text = getString(R.string.selected_profile, text)
+        profileName = text
     }
 }

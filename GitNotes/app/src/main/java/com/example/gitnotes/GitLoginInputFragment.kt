@@ -54,6 +54,7 @@ class GitLoginInputFragment : Fragment() {
         when (fragmentType) {
             FragmentType.CloneRemote -> { // Define the layout for login and remote clone
                 binding.editTextLoginInput3.visibility = View.VISIBLE
+
                 binding.textFieldLoginInput1.text = cardText1
                 binding.textFieldLoginInput2.text = cardText2
                 binding.editTextLoginInput1.hint = hint1
@@ -123,10 +124,34 @@ class GitLoginInputFragment : Fragment() {
                 }
 
                 FragmentType.ProvideToken -> {
-                    // TODO: Implement actions for ProvideToken
+                    val token = binding.editTextLoginInput2.text.toString()
+                    if (isPersonalAccessToken(token)) {
+                        val userProfileName = userProfilesViewModel.selectedUserProfile.value?.profileName ?: return@setOnClickListener
+                        userProfilesViewModel.selectedUserPrefs.insertOrReplace(userProfileName, token)
+
+                        Snackbar.make(
+                            view,
+                            "Successfully registered token for $userProfileName",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+
+                        // TODO: Figure out way to automatically get back to handling dialog fragment
+                    } else {
+                        Snackbar.make(
+                            view,
+                            "Not a valid token",
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
         }
+    }
+
+    // Regular expression courtesy of https://gist.github.com/magnetikonline/073afe7909ffdd6f10ef06a00bc3bc88
+    private fun isPersonalAccessToken(token: String): Boolean {
+        val pattern = "^ghp_[a-zA-Z0-9]{36}$".toRegex()
+        return token.trim().matches(pattern)
     }
 
     companion object {

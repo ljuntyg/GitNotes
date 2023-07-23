@@ -1,8 +1,12 @@
 package com.example.gitnotes
 
+import android.content.Context
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -67,8 +71,6 @@ class GitLoginFragment(private val selectedRepository: Repository) : DialogFragm
                             == userProfilesViewModel.selectedUserProfile.value?.profileName) {
                             binding.spinnerLogin.setSelection(i)
                             binding.spinnerLogin.isEnabled = false
-
-                            // TODO: Show some view
                         }
                     }
                 }
@@ -128,48 +130,37 @@ class GitLoginFragment(private val selectedRepository: Repository) : DialogFragm
                 .replace(R.id.container_login, tokenInputFragment)
                 .commit()
         }
+    }
 
-        /** // Set listener for confirm profile selection button (not the ViewPager button),
-        // on button click, set the selectedUserProfile and loggedIn variables in ViewModel
-        binding.button.setOnClickListener {
-            lifecycleScope.launch {
-                val selectedUserProfile = userProfilesViewModel.getUserProfileAsync(binding.spinnerLogin.selectedItem.toString()).await()
-                if (selectedUserProfile == null) {
-                    Snackbar.make(
-                        requireActivity().findViewById(android.R.id.content),
-                        "Unable to find profile ${binding.spinnerLogin.selectedItem}, unable to login",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                    return@launch
-                }
+    override fun onResume() {
+        super.onResume()
 
-                userProfilesViewModel.setSelectedUserProfile(selectedUserProfile)
-                userProfilesViewModel.loggedIn = true
-                Snackbar.make(
-                    requireActivity().findViewById(android.R.id.content),
-                    "Logged in as ${selectedUserProfile.profileName}",
-                    Snackbar.LENGTH_SHORT
-                ).show()
-                dismiss()
+        val windowManager = context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val defaultDisplay = windowManager.defaultDisplay
+
+        val (widthPixels, heightPixels) = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                val windowMetrics = windowManager.currentWindowMetrics
+                val bounds: Rect = windowMetrics.bounds
+                Pair(bounds.width().toDouble(), bounds.height().toDouble())
             }
-        } */
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+                val outMetrics = DisplayMetrics()
+                defaultDisplay.getRealMetrics(outMetrics)
+                Pair(outMetrics.widthPixels.toDouble(), outMetrics.heightPixels.toDouble())
+            }
+            else -> {
+                val outMetrics = DisplayMetrics()
+                defaultDisplay.getMetrics(outMetrics)
+                Pair(outMetrics.widthPixels.toDouble(), outMetrics.heightPixels.toDouble())
+            }
+        }
 
-        /** // Set up the ViewPager/create token input fragment
-        if (!userProfilesViewModel.loggedIn) {
-            val pagerAdapter = LoginViewPagerAdapter(requireActivity())
-            binding.viewPager.adapter = pagerAdapter
-        } else {
-            val tokenInputFragment = GitLoginInputFragment.newInstanceProvideToken(
-                "Provide PAT for User",
-                "No PAT (Personal Access Token) found for user. Please provide a PAT with access to the repository.",
-                selectedRepository.httpsLink,
-                "Provide PAT"
-            )
+        val dialogWidth = widthPixels * 0.8
 
-            childFragmentManager.beginTransaction()
-                .replace(R.id.git_input_fragment_container, tokenInputFragment)
-                .commit()
-        } */
+        val params: WindowManager.LayoutParams? = dialog?.window?.attributes
+        params?.width = dialogWidth.toInt()
+        dialog?.window?.attributes = params as WindowManager.LayoutParams
     }
 
     override fun onDestroyView() {
