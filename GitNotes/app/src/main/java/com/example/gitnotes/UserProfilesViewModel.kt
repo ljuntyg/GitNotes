@@ -13,6 +13,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.eclipse.jgit.api.Git
 
 // Pass application to then get application context to pass to creation of SelectedUserPrefs singleton
 class UserProfilesViewModel(application: Application, private val repository: ProfilesReposRepository) : ViewModel() {
