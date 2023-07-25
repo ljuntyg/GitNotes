@@ -1,6 +1,8 @@
 package com.example.gitnotes
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,17 +38,27 @@ class GitHandlingCreateFragment : Fragment() {
         val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
         userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
 
+        binding.textInputLayoutHandlingCreate2.editText!!.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun afterTextChanged(p0: Editable?) {
+                binding.textInputLayoutHandlingCreate2.validateLink()
+            }
+        })
+
         // Create repository button
         binding.buttonHandlingCreate.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                val repoName = binding.editTextHandlingCreate1.text.toString()
-                val repoLink = binding.editTextHandlingCreate2.text.toString()
+                val repoName = binding.textInputLayoutHandlingCreate1.editText!!.text.toString()
+                val repoLink = binding.textInputLayoutHandlingCreate2.editText!!.text.toString()
                 val selectedUser = userProfilesViewModel.selectedUserProfile.value!!
                 if (repoName.isEmpty()) {
                     view.showShortSnackbar("Please enter a name for the repository")
                     return@launch
                 } else {
-                    if (repoLink.isNotEmpty() && !isValidHTTPSlink(repoLink)) {
+                    if (repoLink.isNotEmpty() && !repoLink.isValidHTTPSlink()) {
                         view.showShortSnackbar("Invalid HTTPS link")
 
                         return@launch
@@ -66,8 +78,8 @@ class GitHandlingCreateFragment : Fragment() {
                     }
                 }
 
-                binding.editTextHandlingCreate1.setText("")
-                binding.editTextHandlingCreate2.setText("")
+                binding.textInputLayoutHandlingCreate1.editText!!.setText("")
+                binding.textInputLayoutHandlingCreate2.editText!!.setText("")
             }
         }
     }
@@ -75,11 +87,5 @@ class GitHandlingCreateFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    // Regular expression courtesy of https://stackoverflow.com/questions/2514859/regular-expression-for-git-repository
-    private fun isValidHTTPSlink(link: String): Boolean {
-        val pattern = "((git|ssh|http(s)?)|(git@[\\w\\.]+))(:(//)?)([\\w\\.@\\:/\\-~]+)(\\.git)(/)?".toRegex()
-        return link.trim().matches(pattern)
     }
 }

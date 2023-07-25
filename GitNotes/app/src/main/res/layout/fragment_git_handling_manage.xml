@@ -13,15 +13,25 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/edit_text_handling_manage1"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_layout_handling_manage"
+            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:layout_marginBottom="16dp"
-            android:textSize="@dimen/text_size_medium"
-            android:inputType="text"
-            android:enabled="false" />
+            android:paddingBottom="8dp"
+            app:errorTextAppearance="@dimen/text_size_small"
+            app:boxBackgroundColor="@android:color/transparent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:textSize="@dimen/text_size_medium"
+                android:inputType="text"
+                android:ellipsize="end"
+                android:background="@android:color/transparent" />
+
+        </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
             android:id="@+id/linear_layout_handling_manage"

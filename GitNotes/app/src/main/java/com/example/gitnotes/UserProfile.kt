@@ -85,7 +85,7 @@ interface RepositoriesDao {
     fun insert(repository: Repository)
 
     @Update
-    fun update(userProfile: Repository)
+    fun update(repository: Repository)
 
     @Delete
     fun delete(repository: Repository)
@@ -148,19 +148,6 @@ class ProfilesReposRepository(private val userProfilesDao: UserProfilesDao, priv
         }
     }
 
-    suspend fun deleteRepoForUser(repo: Repository, userProfile: UserProfile): Boolean {
-        return withContext(Dispatchers.IO) {
-            val userHasRepo = getRepositoriesForUser(userProfile.profileName).first().contains(repo)
-            if (!userHasRepo) {
-                Log.d("MYLOG", "ERROR: Attempt to delete repo not belonging to given user")
-                false
-            } else {
-                repositoriesDao.delete(repo)
-                true
-            }
-        }
-    }
-
     suspend fun insertRepoForUser(repo: Repository, userProfile: UserProfile): Boolean {
         return withContext(Dispatchers.IO) {
             val userExists = getUserProfile(userProfile.profileName) != null
@@ -169,6 +156,32 @@ class ProfilesReposRepository(private val userProfilesDao: UserProfilesDao, priv
                 false
             } else {
                 repositoriesDao.insert(repo)
+                true
+            }
+        }
+    }
+
+    suspend fun updateRepoForUser(repo: Repository, userProfile: UserProfile): Boolean {
+        return withContext(Dispatchers.IO) {
+            val userExists = getUserProfile(userProfile.profileName) != null
+            if (!userExists) {
+                Log.d("MYLOG", "ERROR: Attempt to update repo for non-existent user")
+                false
+            } else {
+                repositoriesDao.update(repo)
+                true
+            }
+        }
+    }
+
+    suspend fun deleteRepoForUser(repo: Repository, userProfile: UserProfile): Boolean {
+        return withContext(Dispatchers.IO) {
+            val userHasRepo = getRepositoriesForUser(userProfile.profileName).first().contains(repo)
+            if (!userHasRepo) {
+                Log.d("MYLOG", "ERROR: Attempt to delete repo not belonging to given user")
+                false
+            } else {
+                repositoriesDao.delete(repo)
                 true
             }
         }

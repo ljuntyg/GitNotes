@@ -13,7 +13,28 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_layout_handling_create1"
+            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            app:errorTextAppearance="@dimen/text_size_small"
+            app:boxBackgroundColor="@android:color/transparent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:textSize="@dimen/text_size_medium"
+                android:hint="@string/repo_name"
+                android:inputType="text"
+                android:ellipsize="end"
+                android:background="@android:color/transparent" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!--<EditText
             android:id="@+id/edit_text_handling_create1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,9 +42,30 @@
             android:layout_marginBottom="16dp"
             android:textSize="@dimen/text_size_medium"
             android:hint="@string/repo_name"
-            android:inputType="text" />
+            android:inputType="text" />-->
 
-        <EditText
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_input_layout_handling_create2"
+            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            app:errorTextAppearance="@dimen/text_size_small"
+            app:boxBackgroundColor="@android:color/transparent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:textSize="@dimen/text_size_medium"
+                android:hint="@string/repo_link"
+                android:inputType="text"
+                android:ellipsize="end"
+                android:background="@android:color/transparent" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!--<EditText
             android:id="@+id/edit_text_handling_create2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -31,7 +73,7 @@
             android:layout_marginBottom="16dp"
             android:textSize="@dimen/text_size_medium"
             android:hint="@string/repo_link"
-            android:inputType="text" />
+            android:inputType="text" />-->
 
         <Button
             android:id="@+id/button_handling_create"

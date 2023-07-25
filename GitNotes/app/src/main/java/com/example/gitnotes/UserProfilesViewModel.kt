@@ -81,15 +81,21 @@ class UserProfilesViewModel(application: Application, private val repository: Pr
         }
     }
 
-    fun deleteRepoForUserAsync(repo: Repository, userProfile: UserProfile): Deferred<Boolean> {
-        return viewModelScope.async {
-            repository.deleteRepoForUser(repo, userProfile)
-        }
-    }
-
     fun insertRepoForUserAsync(repo: Repository, userProfile: UserProfile): Deferred<Boolean> {
         return viewModelScope.async {
             repository.insertRepoForUser(repo, userProfile)
+        }
+    }
+
+    fun updateRepoForUserAsync(repo: Repository, userProfile: UserProfile): Deferred<Boolean> {
+        return viewModelScope.async {
+            repository.updateRepoForUser(repo, userProfile)
+        }
+    }
+
+    fun deleteRepoForUserAsync(repo: Repository, userProfile: UserProfile): Deferred<Boolean> {
+        return viewModelScope.async {
+            repository.deleteRepoForUser(repo, userProfile)
         }
     }
 }

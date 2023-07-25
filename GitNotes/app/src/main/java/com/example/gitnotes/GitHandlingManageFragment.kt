@@ -1,15 +1,21 @@
 package com.example.gitnotes
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import com.example.gitnotes.databinding.FragmentGitHandlingManageBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,6 +41,8 @@ class GitHandlingManageFragment : Fragment() {
     private lateinit var userProfilesViewModel: UserProfilesViewModel
     private lateinit var notesViewModel: NotesViewModel
     private lateinit var selectedRepository: Repository
+
+    private var textWatcher: TextWatcher? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,16 +70,60 @@ class GitHandlingManageFragment : Fragment() {
         val notesViewModelFactory = NotesViewModelFactory(notesRepository)
         notesViewModel = ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
 
+        // TODO: The logic here needs to be redone, bugs
         // Keeps selectedRepository up-to-date based on e.g. changes based on spinner in GitHandlingFragment
         selectedRepository = userProfilesViewModel.selectedRepository.value!!
         userProfilesViewModel.selectedRepository.observe(viewLifecycleOwner) {
             selectedRepository = it
 
+            val editText = binding.textInputLayoutHandlingManage.editText!!
+            val selectedRepository = userProfilesViewModel.selectedRepository.value!!
+
+            // Clear any previous focus and hide any previously active keyboard on the editText
+            editText.clearFocus()
+            val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(editText.windowToken, 0)
+
+            // Remove old TextWatcher
+            editText.removeTextChangedListener(textWatcher)
+
+            // Assign new TextWatcher
+            textWatcher = object : TextWatcher {
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+                override fun afterTextChanged(p0: Editable?) {
+                    binding.textInputLayoutHandlingManage.validateLink()
+
+                    selectedRepository.httpsLink = editText.text.toString()
+
+                    userProfilesViewModel.viewModelScope.launch {
+                        userProfilesViewModel.updateRepoForUserAsync(selectedRepository, userProfilesViewModel.selectedUserProfile.value!!)
+                    }
+
+                    if (editText.text.toString().isValidHTTPSlink()) {
+                        binding.linearLayoutHandlingManage.visibility = View.VISIBLE
+                    } else {
+                        binding.linearLayoutHandlingManage.visibility = View.GONE
+                    }
+                }
+            }
+
+            // Add new TextWatcher
+            editText.addTextChangedListener(textWatcher)
+
             if (selectedRepository.httpsLink.isEmpty()) {
-                binding.editTextHandlingManage1.setText(R.string.no_repo_link)
+                editText.setHint(R.string.no_repo_link)
+                editText.setText("")
+                binding.linearLayoutHandlingManage.visibility = View.GONE
+            } else if (selectedRepository.httpsLink.isNotEmpty() && !selectedRepository.httpsLink.isValidHTTPSlink()) {
+                editText.setText(selectedRepository.httpsLink)
+                editText.setSelection(editText.text.length)
                 binding.linearLayoutHandlingManage.visibility = View.GONE
             } else {
-                binding.editTextHandlingManage1.setText(selectedRepository.httpsLink)
+                editText.setText(selectedRepository.httpsLink)
+                editText.setSelection(editText.text.length)
                 binding.linearLayoutHandlingManage.visibility = View.VISIBLE
             }
         }
@@ -138,7 +190,7 @@ class GitHandlingManageFragment : Fragment() {
                     view.showShortSnackbar("Failed to delete repository")
                 }
 
-                binding.editTextHandlingManage1.setText("")
+                binding.textInputLayoutHandlingManage.editText!!.setText("")
             }
         }
     }
@@ -172,10 +224,8 @@ class GitHandlingManageFragment : Fragment() {
 
         for (note in notes) {
             val noteFile = File(dir, "${note.id}.txt")
-            if (!noteFile.exists()) {
-                noteFile.writeText("Title: ${note.title}\n\n${note.body}")
-                jgit.add().addFilepattern(noteFile.name).call()
-            }
+            noteFile.writeText("Title: ${note.title}\n\n${note.body}")
+            jgit.add().addFilepattern(noteFile.name).call()
         }
     }
 
