@@ -3,7 +3,6 @@ package com.example.gitnotes
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -16,7 +15,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.gitnotes.databinding.FragmentNoteBinding
-import com.google.android.material.snackbar.Snackbar
 
 class NoteFragment : Fragment() {
     private var _binding: FragmentNoteBinding? = null
@@ -54,11 +52,7 @@ class NoteFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         if (newNote) {
-            Snackbar.make(
-                view,
-                "New note created",
-                Snackbar.LENGTH_SHORT
-            ).show()
+            view.showShortSnackbar("New note created")
         }
 
         val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
@@ -79,11 +73,7 @@ class NoteFragment : Fragment() {
                 when (menuItem.itemId) {
                     R.id.action_delete -> {
                         notesViewModel.delete(note)
-                        Snackbar.make(
-                            view,
-                            "Note deleted",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Note deleted")
                         findNavController().popBackStack()
                         return true
                     }

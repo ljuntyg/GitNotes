@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.gitnotes.databinding.FragmentGitHandlingManageBinding
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,12 +28,13 @@ import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-class GitHandlingManageFragment(private var selectedRepository: Repository) : Fragment() {
+class GitHandlingManageFragment : Fragment() {
     private var _binding: FragmentGitHandlingManageBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var userProfilesViewModel: UserProfilesViewModel
     private lateinit var notesViewModel: NotesViewModel
+    private lateinit var selectedRepository: Repository
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,21 +62,18 @@ class GitHandlingManageFragment(private var selectedRepository: Repository) : Fr
         val notesViewModelFactory = NotesViewModelFactory(notesRepository)
         notesViewModel = ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
 
-        // TODO: Implement selectedRepository livedata to ViewModel to share info between GitHandlingFragment spinner and this GitHandlingManagerFragment
-        userProfilesViewModel.selectedUserRepositories.observe(viewLifecycleOwner) { repos ->
-            if (repos.isNullOrEmpty()) {
-                return@observe
-            } else {
-                selectedRepository = repos.last()
-            }
-        }
+        // Keeps selectedRepository up-to-date based on e.g. changes based on spinner in GitHandlingFragment
+        selectedRepository = userProfilesViewModel.selectedRepository.value!!
+        userProfilesViewModel.selectedRepository.observe(viewLifecycleOwner) {
+            selectedRepository = it
 
-        if (selectedRepository.httpsLink.isEmpty()) {
-            binding.editTextHandlingManage1.setText(R.string.no_repo_link)
-            binding.linearLayoutHandlingManage.visibility = View.GONE
-        } else {
-            binding.editTextHandlingManage1.setText(selectedRepository.httpsLink)
-            binding.linearLayoutHandlingManage.visibility = View.VISIBLE
+            if (selectedRepository.httpsLink.isEmpty()) {
+                binding.editTextHandlingManage1.setText(R.string.no_repo_link)
+                binding.linearLayoutHandlingManage.visibility = View.GONE
+            } else {
+                binding.editTextHandlingManage1.setText(selectedRepository.httpsLink)
+                binding.linearLayoutHandlingManage.visibility = View.VISIBLE
+            }
         }
 
         // Push button
@@ -90,26 +87,12 @@ class GitHandlingManageFragment(private var selectedRepository: Repository) : Fr
                     val jgitRepo = getOrCreateJGitRepository(selectedRepository)
                     createNoteFiles(jgitRepo, notesViewModel.allNotes.value!!)
 
-                    Snackbar.make(
-                        view,
-                        "Pushing repository...",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    view.showShortSnackbar("Pushing repository...")
 
-                    if ((addAndCommitToJGit(jgitRepo, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+                    if ((commitToJGit(jgitRepo, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
                         && pushJGitToRemote(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)))
                     {
-                        Snackbar.make(
-                            view,
-                            "Successfully pushed repository",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        Snackbar.make(
-                            view,
-                            "Failed to push repository",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Successfully pushed repository")
                     }
                 } else { // Request token from user
                     // Open login fragment
@@ -130,26 +113,12 @@ class GitHandlingManageFragment(private var selectedRepository: Repository) : Fr
 
                     val jgitRepo = getOrCreateJGitRepository(selectedRepository)
 
-                    Snackbar.make(
-                        view,
-                        "Pulling repository...",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    view.showShortSnackbar("Pulling repository...")
 
                     if (pullToJGitFromRemote(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)) {
-                        Snackbar.make(
-                            view,
-                            "Successfully pulled repository",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Successfully pulled repository")
 
                         initNotesFromFiles(jgitRepo)
-                    } else {
-                        Snackbar.make(
-                            view,
-                            "Failed to pull repository",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
                     }
                 } else { // Request token from user
                     // Open login fragment
@@ -164,17 +133,9 @@ class GitHandlingManageFragment(private var selectedRepository: Repository) : Fr
             viewLifecycleOwner.lifecycleScope.launch {
                 val deletionSuccessful = userProfilesViewModel.deleteRepoForUserAsync(selectedRepository, userProfilesViewModel.selectedUserProfile.value!!).await()
                 if (deletionSuccessful) {
-                    Snackbar.make(
-                        view,
-                        "Deleted repository ${selectedRepository.name}",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    view.showShortSnackbar("Deleted repository ${selectedRepository.name}")
                 } else {
-                    Snackbar.make(
-                        view,
-                        "Failed to delete repository",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    view.showShortSnackbar("Failed to delete repository")
                 }
 
                 binding.editTextHandlingManage1.setText("")
@@ -263,29 +224,25 @@ class GitHandlingManageFragment(private var selectedRepository: Repository) : Fr
         return@withContext Git.wrap(repository)
     }
 
-    // TODO: Snackbar for exception?
-    private suspend fun addAndCommitToJGit(jgit: Git, commitMessage: String): Boolean = withContext(
+    private suspend fun commitToJGit(jgit: Git, commitMessage: String): Boolean = withContext(
         Dispatchers.IO) {
         return@withContext try {
-            jgit.add().addFilepattern(".").call() // TODO: Remove? Already using add/rm in createNoteFiles, if so rename this method to only commit
-
             val commit = jgit.commit().setMessage(commitMessage).call()
 
             commit != null
         } catch (e: Exception) {
-            Log.d("MYLOG", "Exception when adding/committing: $e")
+            Log.d("MYLOG", "Exception when committing: $e")
+            view?.showShortSnackbar("ERROR: ${e.message}")
             false
         }
     }
 
-    // TODO: Snackbar for exception?
     private suspend fun pushJGitToRemote(jgit: Git, httpsLink: String, token: String): Boolean = withContext(
         Dispatchers.IO) {
         return@withContext try {
             val pushCommand: PushCommand = jgit.push()
             pushCommand.remote = httpsLink
             pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
-            // pushCommand.isForce = true
             pushCommand.setPushAll()
 
             val results = pushCommand.call()
@@ -303,11 +260,11 @@ class GitHandlingManageFragment(private var selectedRepository: Repository) : Fr
             success
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when pushing: $e")
+            view?.showShortSnackbar("ERROR: ${e.message}")
             false
         }
     }
 
-    // TODO: Snackbar for exception?
     private suspend fun pullToJGitFromRemote(jgit: Git, httpsLink: String, token: String): Boolean = withContext(
         Dispatchers.IO) {
         return@withContext try {
@@ -325,6 +282,7 @@ class GitHandlingManageFragment(private var selectedRepository: Repository) : Fr
             pullResult.mergeResult.mergeStatus.isSuccessful
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when pulling: $e")
+            view?.showShortSnackbar("ERROR: ${e.message}")
             false
         }
     }

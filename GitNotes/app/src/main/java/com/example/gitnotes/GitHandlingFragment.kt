@@ -1,33 +1,20 @@
 package com.example.gitnotes
 
 import android.content.Context
-import android.content.res.Resources
 import android.graphics.Color
-import android.graphics.Insets
-import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.util.Log
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.view.WindowManager
-import android.view.WindowMetrics
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.example.gitnotes.databinding.FragmentGitHandlingBinding
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class GitHandlingFragment : DialogFragment() {
     private var _binding: FragmentGitHandlingBinding? = null
@@ -70,24 +57,49 @@ class GitHandlingFragment : DialogFragment() {
             // Update the spinner
             adapter.clear()
             adapter.addAll(updatedData)
+
+            // Set spinner to selected repository if there is one
+            val selectedRepository = userProfilesViewModel.selectedRepository.value
+            val selectedUserProfile = userProfilesViewModel.selectedUserProfile.value
+            if (selectedRepository != null && selectedRepository.profileName == selectedUserProfile?.profileName) {
+                if (selectedRepository.name == "NEW REPOSITORY") { // If NEW REPOSITORY repo selected, then set spinner position to 0
+                    binding.spinnerHandling.setSelection(0)
+                } else { // Else find the position of the selected repository in the updated data list
+                    val selectedPos = updatedData.indexOf(selectedRepository.name)
+                    if (selectedPos != -1) {
+                        binding.spinnerHandling.setSelection(selectedPos)
+                    }
+                }
+            }
         }
+
+        val createRepoFragment = GitHandlingCreateFragment()
+        val manageRepoFragment = GitHandlingManageFragment()
 
         // Set spinner on item selected listener
         binding.spinnerHandling.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 if (position == 0) { // "New repository" selected
-                    val createRepoFragment = GitHandlingCreateFragment()
-
                     childFragmentManager.beginTransaction()
                         .replace(R.id.container_handling, createRepoFragment)
                         .commit()
+
+                    userProfilesViewModel.setSelectedRepository(
+                        userProfilesViewModel.selectedUserRepositories.value?.find {
+                                repo -> repo.name == "NEW REPOSITORY"
+                        } ?: Repository(
+                            profileName = userProfilesViewModel.selectedUserProfile.value!!.profileName,
+                            name = "NEW REPOSITORY",
+                            httpsLink = ""
+                        )
+                    )
                 } else { // Some repository selected
                     val selectedRepository = userProfilesViewModel.selectedUserRepositories.value?.find {
                         repo -> repo.name == binding.spinnerHandling.selectedItem.toString()
                     }
 
                     // TODO: Will this behave well on null?
-                    val manageRepoFragment = GitHandlingManageFragment(selectedRepository ?: return)
+                    userProfilesViewModel.setSelectedRepository(selectedRepository ?: return)
 
                     childFragmentManager.beginTransaction()
                         .replace(R.id.container_handling, manageRepoFragment)

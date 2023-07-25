@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.gitnotes.databinding.FragmentGitHandlingCreateBinding
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 
@@ -44,19 +43,11 @@ class GitHandlingCreateFragment : Fragment() {
                 val repoLink = binding.editTextHandlingCreate2.text.toString()
                 val selectedUser = userProfilesViewModel.selectedUserProfile.value!!
                 if (repoName.isEmpty()) {
-                    Snackbar.make(
-                        view,
-                        "Please enter a name for the repository",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    view.showShortSnackbar("Please enter a name for the repository")
                     return@launch
                 } else {
                     if (repoLink.isNotEmpty() && !isValidHTTPSlink(repoLink)) {
-                        Snackbar.make(
-                            view,
-                            "Invalid HTTPS link",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Invalid HTTPS link")
 
                         return@launch
                     }
@@ -67,17 +58,11 @@ class GitHandlingCreateFragment : Fragment() {
                         httpsLink = repoLink)
                     val insertionSuccessful = userProfilesViewModel.insertRepoForUserAsync(newRepo, selectedUser).await()
                     if (insertionSuccessful) {
-                        Snackbar.make(
-                            view,
-                            "Created new repository $repoName",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Created new repository $repoName")
+
+                        userProfilesViewModel.setSelectedRepository(newRepo)
                     } else {
-                        Snackbar.make(
-                            view,
-                            "Failed to create new repository",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Failed to create new repository")
                     }
                 }
 

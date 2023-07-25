@@ -10,10 +10,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.eclipse.jgit.api.Git
 
 // Pass application to then get application context to pass to creation of SelectedUserPrefs singleton
 class UserProfilesViewModel(application: Application, private val repository: ProfilesReposRepository) : ViewModel() {
@@ -26,6 +24,9 @@ class UserProfilesViewModel(application: Application, private val repository: Pr
 
     private val _selectedUserRepositories = MutableLiveData<List<Repository>>()
     val selectedUserRepositories: LiveData<List<Repository>> get() = _selectedUserRepositories
+
+    private val _selectedRepository = MutableLiveData<Repository>()
+    val selectedRepository: LiveData<Repository> get() = _selectedRepository
 
     var loggedIn = false
     val selectedUserPrefs: SelectedUserPrefs = SelectedUserPrefs.getInstance(application)
@@ -50,6 +51,10 @@ class UserProfilesViewModel(application: Application, private val repository: Pr
                 }
             }
         }
+    }
+
+    fun setSelectedRepository(repo: Repository) {
+        _selectedRepository.value = repo
     }
 
     fun getUserProfileAsync(name: String): Deferred<UserProfile?> {

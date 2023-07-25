@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.gitnotes.databinding.FragmentGitLoginConfirmUserBinding
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 
@@ -43,11 +42,7 @@ class GitLoginConfirmUserFragment : Fragment() {
             userProfilesViewModel.viewModelScope.launch {
                 val userProfile = userProfilesViewModel.getUserProfileAsync(profileName).await()
                 if (userProfile == null) {
-                    Snackbar.make(
-                        view,
-                        "Unable to find user profile",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    view.showShortSnackbar("Unable to find user profile")
                 } else {
                     userProfilesViewModel.setSelectedUserProfile(userProfile)
                     // If selected user does not have stored credentials, then overwrite the last user's token with a new empty token,
@@ -57,11 +52,7 @@ class GitLoginConfirmUserFragment : Fragment() {
                     }
                     userProfilesViewModel.loggedIn = true
 
-                    Snackbar.make(
-                        requireActivity().findViewById(android.R.id.content),
-                        "Logged in as ${userProfile.profileName}",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar("Logged in as ${userProfile.profileName}")
 
                     (parentFragment as DialogFragment).dismiss()
                 }

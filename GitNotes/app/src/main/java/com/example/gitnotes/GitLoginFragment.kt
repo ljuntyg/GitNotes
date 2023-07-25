@@ -7,21 +7,15 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.LinearLayout
-import androidx.core.view.size
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.example.gitnotes.databinding.FragmentGitLoginBinding
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,11 +52,20 @@ class GitLoginFragment(private val selectedRepository: Repository) : DialogFragm
             profiles?.let {
                 // This block will be executed whenever the data changes, including when the data is first loaded
                 val data = mutableListOf("New user profile")
-                data.addAll(profiles.map { profile -> profile.profileName })
+                val allProfileNames = profiles.map { profile -> profile.profileName }
+                data.addAll(allProfileNames)
                 val adapter =
                     CustomSpinnerAdapter(requireContext(), android.R.layout.simple_spinner_item, data)
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 binding.spinnerLogin.adapter = adapter
+
+                // If there was a user logged in before (existing credentials) but no one logged in yet, set spinner to this user
+                val prevProfile = allProfileNames.find { profileName ->
+                    profileName == userProfilesViewModel.selectedUserPrefs.getCredentials().first
+                }
+                if (!userProfilesViewModel.loggedIn && prevProfile != null) {
+                    binding.spinnerLogin.setSelection(data.indexOf(prevProfile))
+                }
 
                 // If user is logged in, set spinner to user and lock it
                 if (userProfilesViewModel.loggedIn) {

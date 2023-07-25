@@ -1,16 +1,13 @@
 package com.example.gitnotes
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.gitnotes.databinding.FragmentGitLoginBinding
 import com.example.gitnotes.databinding.FragmentGitLoginInputBinding
-import com.google.android.material.snackbar.Snackbar
 
 class GitLoginInputFragment : Fragment() {
     private var _binding: FragmentGitLoginInputBinding? = null
@@ -96,11 +93,8 @@ class GitLoginInputFragment : Fragment() {
                     val repoName = binding.editTextLoginInput2.text.toString()
 
                     if (profileName.isEmpty() || repoName.isEmpty()) {
-                        Snackbar.make(
-                            view,
-                            "Please fill in all fields",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Please fill in all fields")
+
                         return@setOnClickListener
                     }
 
@@ -112,11 +106,7 @@ class GitLoginInputFragment : Fragment() {
                     userProfilesViewModel.loggedIn = true
                     userProfilesViewModel.selectedUserPrefs.insertOrReplace(profileName, "")
 
-                    Snackbar.make(
-                        requireActivity().findViewById(android.R.id.content),
-                        "Created new local repository",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar("Created new local repository")
 
                     parentFragmentManager.findFragmentByTag("GitLoginFragment")?.let {
                         (it as DialogFragment).dismiss()
@@ -129,19 +119,11 @@ class GitLoginInputFragment : Fragment() {
                         val userProfileName = userProfilesViewModel.selectedUserProfile.value?.profileName ?: return@setOnClickListener
                         userProfilesViewModel.selectedUserPrefs.insertOrReplace(userProfileName, token)
 
-                        Snackbar.make(
-                            view,
-                            "Successfully registered token for $userProfileName",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Successfully registered token for $userProfileName")
 
                         // TODO: Figure out way to automatically get back to handling dialog fragment
                     } else {
-                        Snackbar.make(
-                            view,
-                            "Not a valid token",
-                            Snackbar.LENGTH_SHORT
-                        ).show()
+                        view.showShortSnackbar("Not a valid token")
                     }
                 }
             }
