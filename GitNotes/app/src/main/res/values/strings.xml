@@ -20,6 +20,8 @@
     <string name="repo_name">Repository name</string>
     <string name="repo_link">Repository HTTPS link</string>
     <string name="no_repo_link">No HTTPS link for repository</string>
+    <string name="invalid_link">Not a valid HTTPS link</string>
+    <string name="repo_name_mismatch">Remote name \"%s\" does not match local name \"%s\"</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

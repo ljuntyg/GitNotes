@@ -1,6 +1,8 @@
 package com.ljuntyg.gitnotes
 
+import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -22,6 +24,13 @@ class NoteFragment : Fragment() {
     private lateinit var notesViewModel: NotesViewModel
 
     private var newNote: Boolean = false
+
+    // Used to handle getParcelable(String key) deprecation (deprecated in API level 33)
+    // in favor of the new getParcelable(String key, Class class) if version >= API 33
+    private inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getParcelable(key, T::class.java)
+        else -> @Suppress("DEPRECATION") getParcelable(key) as? T
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -11,6 +11,21 @@ fun View.showShortSnackbar(message: String) {
     Snackbar.make(this, message, Snackbar.LENGTH_SHORT).show()
 }
 
+fun View.showLongSnackbar(message: String) {
+    Snackbar.make(this, message, Snackbar.LENGTH_LONG).show()
+}
+
+fun View.showIndefiniteSnackbar(message: String) {
+    Snackbar.make(this, message, Snackbar.LENGTH_INDEFINITE).show()
+}
+
+fun String.getRepoNameFromUrl(): String {
+    val parts = this.split("/")
+    val fullName = parts.last()
+
+    return fullName.removeSuffix(".git")
+}
+
 // Regular expression courtesy of https://gist.github.com/magnetikonline/073afe7909ffdd6f10ef06a00bc3bc88
 fun String.isPersonalAccessToken(): Boolean {
     val pattern = "^ghp_[a-zA-Z0-9]{36}$".toRegex()
@@ -47,11 +62,4 @@ fun TextInputLayout.validateLink(): Boolean {
         this.isErrorEnabled = false
         true
     }
-}
-
-// Used to handle getParcelable(String key) deprecation (deprecated in API level 33)
-// in favor of the new getParcelable(String key, Class class) if version >= API 33
-inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getParcelable(key, T::class.java)
-    else -> @Suppress("DEPRECATION") getParcelable(key) as? T
 }

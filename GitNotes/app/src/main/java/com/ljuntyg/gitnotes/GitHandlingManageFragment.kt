@@ -59,19 +59,28 @@ class GitHandlingManageFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Get reference to UserProfilesViewModel
-        val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
-        val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
+        val userProfilesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .userProfilesDao()
+        val repositoriesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
-        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+        val userProfilesViewModelFactory =
+            UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
+        userProfilesViewModel = ViewModelProvider(
+            requireActivity(),
+            userProfilesViewModelFactory
+        )[UserProfilesViewModel::class.java]
 
         // Get reference to NotesViewModel
         val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
         val notesRepository = NotesRepository(notesDao)
         val notesViewModelFactory = NotesViewModelFactory(notesRepository)
-        notesViewModel = ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
+        notesViewModel =
+            ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
 
-        // TODO: The logic here needs to be redone, bugs
+        // TODO: Messy cursor on selection, sometimes visible sometimes not
         // Keeps selectedRepository up-to-date based on e.g. changes based on spinner in GitHandlingFragment
         selectedRepository = userProfilesViewModel.selectedRepository.value!!
         userProfilesViewModel.selectedRepository.observe(viewLifecycleOwner) {
@@ -85,49 +94,88 @@ class GitHandlingManageFragment : Fragment() {
             val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(editText.windowToken, 0)
 
-            // Remove old TextWatcher
+            // Remove any previous textWatcher, it will be recreated after initial text checks
             editText.removeTextChangedListener(textWatcher)
 
-            // Assign new TextWatcher
+            // Check the text of this new selected repository and set EditText accordingly
+            if (selectedRepository.httpsLink.isValidHTTPSlink()) { // Valid HTTPS link
+                if (selectedRepository.httpsLink.getRepoNameFromUrl() == selectedRepository.name.trim()) {
+                    // All good, set text to link and select end of text to ensure repo name is seen
+                    editText.setText(selectedRepository.httpsLink)
+                    editText.setSelection(editText.text.length)
+                    binding.linearLayoutHandlingManage.visibility = View.VISIBLE
+                    binding.textInputLayoutHandlingManage.isErrorEnabled = false
+                } else {
+                    // Repo name does not match local name, no good, show link with error
+                    editText.setText(selectedRepository.httpsLink)
+                    editText.setSelection(editText.text.length)
+                    binding.linearLayoutHandlingManage.visibility = View.GONE
+                    binding.textInputLayoutHandlingManage.error = getString(
+                        R.string.repo_name_mismatch,
+                        selectedRepository.httpsLink.getRepoNameFromUrl(),
+                        selectedRepository.name.trim()
+                    )
+                }
+            } else { // Not a valid HTTPS link
+                if (selectedRepository.httpsLink.isNotEmpty()) {
+                    // Invalid HTTPS link, show text with error
+                    editText.setText(selectedRepository.httpsLink)
+                    editText.setSelection(editText.text.length)
+                    binding.linearLayoutHandlingManage.visibility = View.GONE
+                    binding.textInputLayoutHandlingManage.error = getString(R.string.invalid_link)
+                } else {
+                    // No text at all, show hint
+                    editText.setText("")
+                    editText.hint = getString(R.string.no_repo_link)
+                    binding.linearLayoutHandlingManage.visibility = View.GONE
+                    binding.textInputLayoutHandlingManage.isErrorEnabled = false
+                }
+            }
+
+            // Reinitialize textWatcher
             textWatcher = object : TextWatcher {
                 override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
                 override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
+                // Do repeat checks according to the logic above every time the text changes
                 override fun afterTextChanged(p0: Editable?) {
-                    binding.textInputLayoutHandlingManage.validateLink()
-
-                    selectedRepository.httpsLink = editText.text.toString()
-
+                    val newRepoLink = p0.toString()
+                    selectedRepository.httpsLink = newRepoLink
                     userProfilesViewModel.viewModelScope.launch {
-                        userProfilesViewModel.updateRepoForUserAsync(selectedRepository, userProfilesViewModel.selectedUserProfile.value!!)
+                        userProfilesViewModel.updateRepoForUserAsync(
+                            selectedRepository,
+                            userProfilesViewModel.selectedUserProfile.value!!
+                        )
                     }
-
-                    if (editText.text.toString().isValidHTTPSlink()) {
-                        binding.linearLayoutHandlingManage.visibility = View.VISIBLE
+                    if (newRepoLink.isValidHTTPSlink()) {
+                        val repoName = newRepoLink.getRepoNameFromUrl()
+                        if (repoName == selectedRepository.name.trim()) {
+                            binding.linearLayoutHandlingManage.visibility = View.VISIBLE
+                            binding.textInputLayoutHandlingManage.isErrorEnabled = false
+                        } else {
+                            binding.linearLayoutHandlingManage.visibility = View.GONE
+                            binding.textInputLayoutHandlingManage.error = getString(
+                                R.string.repo_name_mismatch,
+                                selectedRepository.httpsLink.getRepoNameFromUrl(),
+                                selectedRepository.name.trim()
+                            )
+                        }
                     } else {
-                        binding.linearLayoutHandlingManage.visibility = View.GONE
-                        editText.setHint(R.string.no_repo_link)
+                        if (newRepoLink.isNotEmpty()) {
+                            binding.linearLayoutHandlingManage.visibility = View.GONE
+                            binding.textInputLayoutHandlingManage.error = getString(R.string.invalid_link)
+                        } else {
+                            editText.hint = getString(R.string.no_repo_link)
+                            binding.linearLayoutHandlingManage.visibility = View.GONE
+                            binding.textInputLayoutHandlingManage.isErrorEnabled = false
+                        }
                     }
                 }
             }
 
-            // Add new TextWatcher
+            // Add textWatcher to editText
             editText.addTextChangedListener(textWatcher)
-
-            if (selectedRepository.httpsLink.isEmpty()) {
-                editText.setHint(R.string.no_repo_link)
-                editText.setText("")
-                binding.linearLayoutHandlingManage.visibility = View.GONE
-            } else if (selectedRepository.httpsLink.isNotEmpty() && !selectedRepository.httpsLink.isValidHTTPSlink()) {
-                editText.setText(selectedRepository.httpsLink)
-                editText.setSelection(editText.text.length)
-                binding.linearLayoutHandlingManage.visibility = View.GONE
-            } else {
-                editText.setText(selectedRepository.httpsLink)
-                editText.setSelection(editText.text.length)
-                binding.linearLayoutHandlingManage.visibility = View.VISIBLE
-            }
         }
 
         // Push button
@@ -139,13 +187,16 @@ class GitHandlingManageFragment : Fragment() {
                     Log.d("MYLOG", "Credentials matching user found")
 
                     val jgitRepo = getOrCreateJGitRepository(selectedRepository)
+                    view.showIndefiniteSnackbar("Pushing repository...")
                     createNoteFiles(jgitRepo, notesViewModel.allNotes.value!!)
 
-                    view.showShortSnackbar("Pushing repository...")
-
                     if ((commitToJGit(jgitRepo, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-                        && verifyAndPush(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)))
-                    {
+                                && verifyAndPush(
+                            jgitRepo,
+                            selectedRepository.httpsLink,
+                            userProfilesViewModel.selectedUserPrefs.getCredentials().second!!
+                        ))
+                    ) {
                         view.showShortSnackbar("Successfully pushed repository")
                     }
                 } else { // Request token from user
@@ -166,10 +217,14 @@ class GitHandlingManageFragment : Fragment() {
                     // TODO: Pull with credentials
 
                     val jgitRepo = getOrCreateJGitRepository(selectedRepository)
+                    view.showIndefiniteSnackbar("Pulling repository...")
 
-                    view.showShortSnackbar("Pulling repository...")
-
-                    if (verifyAndPull(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)) {
+                    if (verifyAndPull(
+                            jgitRepo,
+                            selectedRepository.httpsLink,
+                            userProfilesViewModel.selectedUserPrefs.getCredentials().second!!
+                        )
+                    ) {
                         view.showShortSnackbar("Successfully pulled repository")
 
                         initNotesFromFiles(jgitRepo)
@@ -185,7 +240,10 @@ class GitHandlingManageFragment : Fragment() {
         // Delete button
         binding.buttonHandlingManage3.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                val deletionSuccessful = userProfilesViewModel.deleteRepoForUserAsync(selectedRepository, userProfilesViewModel.selectedUserProfile.value!!).await()
+                val deletionSuccessful = userProfilesViewModel.deleteRepoForUserAsync(
+                    selectedRepository,
+                    userProfilesViewModel.selectedUserProfile.value!!
+                ).await()
                 if (deletionSuccessful) {
                     view.showShortSnackbar("Deleted repository ${selectedRepository.name}")
                 } else {
@@ -210,32 +268,33 @@ class GitHandlingManageFragment : Fragment() {
 
         return files.filter { it.isFile && !it.name.startsWith(".git") }
             .all { file ->
-                file.extension == "txt" && file.bufferedReader().use { it.readLine() }.startsWith("Title: ")
+                file.extension == "txt" && file.bufferedReader().use { it.readLine() }
+                    .startsWith("Title: ")
             }
     }
 
-    private suspend fun createNoteFiles(jgit: Git, notes: List<Note>) = withContext(Dispatchers.IO) {
-        val dir = jgit.repository.directory.parentFile
-        val noteFileNames = notes.map { "${it.id}.txt" }.toSet()
+    private suspend fun createNoteFiles(jgit: Git, notes: List<Note>) =
+        withContext(Dispatchers.IO) {
+            val dir = jgit.repository.directory.parentFile
+            val noteFileNames = notes.map { "${it.id}.txt" }.toSet()
 
-        dir.listFiles()?.forEach { file ->
-            if (file.name !in noteFileNames) {
-                file.delete()
-                jgit.rm().addFilepattern(file.name).call()
+            dir.listFiles()?.forEach { file ->
+                if (file.name !in noteFileNames) {
+                    jgit.rm().addFilepattern(file.name).call()
+                }
+            }
+
+            for (note in notes) {
+                val noteFile = File(dir, "${note.id}.txt")
+                noteFile.writeText("Title: ${note.title}\n\n${note.body}")
+                jgit.add().addFilepattern(noteFile.name).call()
             }
         }
-
-        for (note in notes) {
-            val noteFile = File(dir, "${note.id}.txt")
-            noteFile.writeText("Title: ${note.title}\n\n${note.body}")
-            jgit.add().addFilepattern(noteFile.name).call()
-        }
-    }
 
     private suspend fun initNotesFromFiles(jgit: Git) = withContext(Dispatchers.IO) {
         val repoDir = jgit.repository.directory.parentFile
 
-        // Delete all current notes
+        // Delete all current notes (they will be re-initiated below)
         notesViewModel.allNotes.value?.forEach { note ->
             notesViewModel.delete(note)
         }
@@ -246,7 +305,8 @@ class GitHandlingManageFragment : Fragment() {
                 val content = file.readText()
 
                 val noteId = file.nameWithoutExtension.toLongOrNull() // Parse ID from filename
-                val noteTitle = content.substringAfter("Title: ").substringBefore("\n") // Parse note title
+                val noteTitle =
+                    content.substringAfter("Title: ").substringBefore("\n") // Parse note title
                 val noteBody = content.substringAfter("\n\n") // Parse note body
 
                 if (noteId != null) {
@@ -257,28 +317,30 @@ class GitHandlingManageFragment : Fragment() {
         }
     }
 
-    private suspend fun getOrCreateJGitRepository(repo: Repository): Git = withContext(Dispatchers.IO) {
-        val repoDir = File(requireActivity().filesDir, repo.name)
+    private suspend fun getOrCreateJGitRepository(repo: Repository): Git =
+        withContext(Dispatchers.IO) {
+            val repoDir = File(requireActivity().filesDir, repo.name.trim())
 
-        if (!repoDir.exists()) {
-            repoDir.mkdirs()
+            if (!repoDir.exists()) {
+                repoDir.mkdirs()
+            }
+
+            val gitDir = File(repoDir, ".git")
+
+            val repoExists = RepositoryCache.FileKey.isGitRepository(gitDir, FS.DETECTED)
+
+            val repository: JRepository = if (repoExists) {
+                RepositoryBuilder().setGitDir(gitDir).readEnvironment().findGitDir().build()
+            } else {
+                Git.init().setDirectory(repoDir).call().repository
+            }
+
+            return@withContext Git.wrap(repository)
         }
-
-        val gitDir = File(repoDir, ".git")
-
-        val repoExists = RepositoryCache.FileKey.isGitRepository(gitDir, FS.DETECTED)
-
-        val repository: JRepository = if (repoExists) {
-            RepositoryBuilder().setGitDir(gitDir).readEnvironment().findGitDir().build()
-        } else {
-            Git.init().setDirectory(repoDir).call().repository
-        }
-
-        return@withContext Git.wrap(repository)
-    }
 
     private suspend fun commitToJGit(jgit: Git, commitMessage: String): Boolean = withContext(
-        Dispatchers.IO) {
+        Dispatchers.IO
+    ) {
         return@withContext try {
             val commit = jgit.commit().setMessage(commitMessage).call()
 
@@ -291,114 +353,131 @@ class GitHandlingManageFragment : Fragment() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O) // For Path to File conversion
-    private suspend fun verifyAndPush(jgit: Git, remoteLink: String, token: String): Boolean = withContext(Dispatchers.IO) {
-        val tempDirPath: Path = createTempDirectory("gitnotes")
-        val tempDir = tempDirPath.toFile()
-        val tempJgit: Git
+    private suspend fun verifyAndPush(jgit: Git, remoteLink: String, token: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val tempDirPath: Path = createTempDirectory("gitnotes")
+            val tempDir = tempDirPath.toFile()
+            val tempJgit: Git
 
-        try {
-            // Clone the remote repo into a temporary local repo
-            tempJgit = Git.cloneRepository()
-                .setURI(remoteLink)
-                .setDirectory(tempDir)
-                .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
-                .call()
+            try {
+                // Clone the remote repo into a temporary local repo
+                tempJgit = Git.cloneRepository()
+                    .setURI(remoteLink)
+                    .setDirectory(tempDir)
+                    .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
+                    .call()
 
-            if (!isGitNotesRepository(tempJgit)) {
-                // If the verification fails, delete the temporary repo and return false
-                tempJgit.repository.close()
-                tempDir.deleteRecursively()
-                view?.showShortSnackbar("ERROR: Remote is not a GitNotes repository")
+                if (!isGitNotesRepository(tempJgit)) {
+                    // If the verification fails, delete the temporary repo and return false
+                    tempJgit.repository.close()
+                    tempDir.deleteRecursively()
+                    view?.showShortSnackbar("ERROR: Remote is not a GitNotes repository")
+                    return@withContext false
+                }
+
+                // If the verification succeeds, push the changes to the remote repo
+                return@withContext pushJGitToRemote(jgit, remoteLink, token)
+            } catch (e: Exception) {
+                Log.d("MYLOG", "Exception when verifying and pushing: $e")
+                view?.showShortSnackbar("ERROR: ${e.message}")
                 return@withContext false
             }
-
-            // If the verification succeeds, push the changes to the remote repo
-            return@withContext pushJGitToRemote(jgit, remoteLink, token)
-        } catch (e: Exception) {
-            Log.d("MYLOG", "Exception when verifying and pushing: $e")
-            view?.showShortSnackbar("ERROR: ${e.message}")
-            return@withContext false
         }
-    }
 
-    private suspend fun pushJGitToRemote(jgit: Git, httpsLink: String, token: String): Boolean = withContext(
-        Dispatchers.IO) {
-        return@withContext try {
-            val pushCommand: PushCommand = jgit.push()
-            pushCommand.remote = httpsLink
-            pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
-            pushCommand.setPushAll()
+    private suspend fun pushJGitToRemote(jgit: Git, httpsLink: String, token: String): Boolean =
+        withContext(
+            Dispatchers.IO
+        ) {
+            return@withContext try {
+                val pushCommand: PushCommand = jgit.push()
+                pushCommand.remote = httpsLink
+                pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
+                pushCommand.setPushAll()
 
-            val results = pushCommand.call()
+                val results = pushCommand.call()
 
-            var success = true
-            for (result in results) {
-                for (update in result.remoteUpdates) {
-                    if (update.status != RemoteRefUpdate.Status.OK &&
-                        update.status != RemoteRefUpdate.Status.UP_TO_DATE) {
-                        success = false
-                        break
+                var success = true
+                for (result in results) {
+                    for (update in result.remoteUpdates) {
+                        if (update.status != RemoteRefUpdate.Status.OK &&
+                            update.status != RemoteRefUpdate.Status.UP_TO_DATE
+                        ) {
+                            success = false
+                            break
+                        }
                     }
                 }
+                success
+            } catch (e: Exception) {
+                Log.d("MYLOG", "Exception when pushing: $e")
+                view?.showShortSnackbar("ERROR: ${e.message}")
+                false
             }
-            success
-        } catch (e: Exception) {
-            Log.d("MYLOG", "Exception when pushing: $e")
-            view?.showShortSnackbar("ERROR: ${e.message}")
-            false
         }
-    }
 
     @RequiresApi(Build.VERSION_CODES.O) // For Path to File conversion
-    private suspend fun verifyAndPull(jgit: Git, remoteLink: String, token: String): Boolean = withContext(Dispatchers.IO) {
-        val tempDirPath: Path = createTempDirectory("gitnotes")
-        val tempDir = tempDirPath.toFile()
-        val tempJgit: Git
+    private suspend fun verifyAndPull(jgit: Git, remoteLink: String, token: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val tempDirPath: Path = createTempDirectory("gitnotes")
+            val tempDir = tempDirPath.toFile()
+            val tempJgit: Git
 
-        try {
-            // Clone the remote repo into a temporary local repo
-            tempJgit = Git.cloneRepository()
-                .setURI(remoteLink)
-                .setDirectory(tempDir)
-                .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
-                .call()
+            try {
+                // Clone the remote repo into a temporary local repo
+                tempJgit = Git.cloneRepository()
+                    .setURI(remoteLink)
+                    .setDirectory(tempDir)
+                    .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
+                    .call()
 
-            if (!isGitNotesRepository(tempJgit)) {
-                // If the verification fails, delete the temporary repo and return false
-                tempJgit.repository.close()
-                tempDir.deleteRecursively()
-                view?.showShortSnackbar("ERROR: Remote is not a GitNotes repository")
+                if (!isGitNotesRepository(tempJgit)) {
+                    // If the verification fails, delete the temporary repo and return false
+                    tempJgit.repository.close()
+                    tempDir.deleteRecursively()
+                    view?.showShortSnackbar("ERROR: Remote is not a GitNotes repository")
+                    return@withContext false
+                }
+
+                // If the verification succeeds, pull the changes into the actual repo
+                return@withContext pullToJGitFromRemote(jgit, remoteLink, token)
+            } catch (e: Exception) {
+                Log.d("MYLOG", "Exception when verifying and pulling: $e")
+                view?.showShortSnackbar("ERROR: ${e.message}")
                 return@withContext false
             }
-
-            // If the verification succeeds, pull the changes into the actual repo
-            return@withContext pullToJGitFromRemote(jgit, remoteLink, token)
-        } catch (e: Exception) {
-            Log.d("MYLOG", "Exception when verifying and pulling: $e")
-            view?.showShortSnackbar("ERROR: ${e.message}")
-            return@withContext false
         }
-    }
 
-    private suspend fun pullToJGitFromRemote(jgit: Git, httpsLink: String, token: String): Boolean = withContext(
-        Dispatchers.IO) {
-        return@withContext try {
-            val repoConfig = jgit.repository.config
-            repoConfig.setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", "url", httpsLink)
-            repoConfig.setString(ConfigConstants.CONFIG_REMOTE_SECTION, "origin", "fetch", "+refs/heads/*:refs/remotes/origin/*")
-            repoConfig.save()
+    private suspend fun pullToJGitFromRemote(jgit: Git, httpsLink: String, token: String): Boolean =
+        withContext(
+            Dispatchers.IO
+        ) {
+            return@withContext try {
+                val repoConfig = jgit.repository.config
+                repoConfig.setString(
+                    ConfigConstants.CONFIG_REMOTE_SECTION,
+                    "origin",
+                    "url",
+                    httpsLink
+                )
+                repoConfig.setString(
+                    ConfigConstants.CONFIG_REMOTE_SECTION,
+                    "origin",
+                    "fetch",
+                    "+refs/heads/*:refs/remotes/origin/*"
+                )
+                repoConfig.save()
 
-            val pullCommand: PullCommand = jgit.pull()
-            pullCommand.remote = "origin"
-            pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
+                val pullCommand: PullCommand = jgit.pull()
+                pullCommand.remote = "origin"
+                pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
 
-            val pullResult = pullCommand.call()
+                val pullResult = pullCommand.call()
 
-            pullResult.mergeResult.mergeStatus.isSuccessful
-        } catch (e: Exception) {
-            Log.d("MYLOG", "Exception when pulling: $e")
-            view?.showShortSnackbar("ERROR: ${e.message}")
-            false
+                pullResult.mergeResult.mergeStatus.isSuccessful
+            } catch (e: Exception) {
+                Log.d("MYLOG", "Exception when pulling: $e")
+                view?.showShortSnackbar("ERROR: ${e.message}")
+                false
+            }
         }
-    }
 }

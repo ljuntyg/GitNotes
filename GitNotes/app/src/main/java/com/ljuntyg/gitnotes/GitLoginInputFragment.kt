@@ -52,7 +52,7 @@ class GitLoginInputFragment : Fragment() {
             hint3 = it.getString(HINT_3) ?: ""
             text1 = it.getString(TEXT_1) ?: ""
             buttonText = it.getString(BUTTON_TEXT) ?: ""
-            fragmentType = FragmentType.valueOf(it.getString(FRAGMENT_TYPE) ?: "CloneRemote")
+            fragmentType = FragmentType.valueOf(it.getString(FRAGMENT_TYPE)!!) /**?: "CloneRemote")*/
         }
 
         // Get reference to UserProfilesViewModel
@@ -83,6 +83,10 @@ class GitLoginInputFragment : Fragment() {
                     override fun afterTextChanged(p0: Editable?) {}
 
                     override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                        val editText = binding.textInputLayoutLoginInput2.editText!!
+                        if (editText.text.toString().isPersonalAccessToken()) {
+
+                        }
                         binding.textInputLayoutLoginInput2.validateToken()
                     }
                 })
@@ -178,6 +182,17 @@ class GitLoginInputFragment : Fragment() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        binding.root.isVerticalScrollBarEnabled = false
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.root.requestLayout() // Resizes these fragments (more specifically the parent ViewPager2) to match the height of this fragment
+        binding.root.isVerticalScrollBarEnabled = true
+    }
+
     companion object {
         private const val CARD_TEXT_1 = "cardText1"
         private const val CARD_TEXT_2 = "cardText2"
@@ -198,7 +213,7 @@ class GitLoginInputFragment : Fragment() {
                 putString(HINT_3, hint3)
                 putString(TEXT_1, "")
                 putString(BUTTON_TEXT, buttonText)
-                putSerializable(FRAGMENT_TYPE, FragmentType.CloneRemote)
+                putString(FRAGMENT_TYPE, FragmentType.CloneRemote.name)
             }
         }
 
@@ -212,7 +227,7 @@ class GitLoginInputFragment : Fragment() {
                 putString(HINT_3, "")
                 putString(TEXT_1, "")
                 putString(BUTTON_TEXT, buttonText)
-                putSerializable(FRAGMENT_TYPE, FragmentType.CreateLocal)
+                putString(FRAGMENT_TYPE, FragmentType.CreateLocal.name)
             }
         }
 
@@ -226,7 +241,7 @@ class GitLoginInputFragment : Fragment() {
                 putString(HINT_3, "")
                 putString(TEXT_1, text1)
                 putString(BUTTON_TEXT, buttonText)
-                putString(FRAGMENT_TYPE, fragmentType.name)
+                putString(FRAGMENT_TYPE, FragmentType.ProvideToken.name)
             }
         }
     }
