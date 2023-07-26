@@ -1,13 +1,15 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.gitnotes.databinding.FragmentGitLoginInputBinding
+import com.ljuntyg.gitnotes.databinding.FragmentGitLoginInputBinding
 
 class GitLoginInputFragment : Fragment() {
     private var _binding: FragmentGitLoginInputBinding? = null
@@ -41,6 +43,18 @@ class GitLoginInputFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize class members
+        arguments?.let {
+            cardText1 = it.getString(CARD_TEXT_1) ?: ""
+            cardText2 = it.getString(CARD_TEXT_2) ?: ""
+            hint1 = it.getString(HINT_1) ?: ""
+            hint2 = it.getString(HINT_2) ?: ""
+            hint3 = it.getString(HINT_3) ?: ""
+            text1 = it.getString(TEXT_1) ?: ""
+            buttonText = it.getString(BUTTON_TEXT) ?: ""
+            fragmentType = FragmentType.valueOf(it.getString(FRAGMENT_TYPE) ?: "CloneRemote")
+        }
+
         // Get reference to UserProfilesViewModel
         val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
         val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
@@ -48,37 +62,71 @@ class GitLoginInputFragment : Fragment() {
         val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
         userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
 
+        val editText1 = binding.textInputLayoutLoginInput1.editText!!
+        val editText2 = binding.textInputLayoutLoginInput2.editText!!
+        val editText3 = binding.textInputLayoutLoginInput3.editText!!
+
         when (fragmentType) {
             FragmentType.CloneRemote -> { // Define the layout for login and remote clone
-                binding.editTextLoginInput3.visibility = View.VISIBLE
+                binding.textInputLayoutLoginInput3.visibility = View.VISIBLE
 
                 binding.textFieldLoginInput1.text = cardText1
                 binding.textFieldLoginInput2.text = cardText2
-                binding.editTextLoginInput1.hint = hint1
-                binding.editTextLoginInput2.hint = hint2
-                binding.editTextLoginInput3.hint = hint3
+                editText1.hint = hint1
+                editText2.hint = hint2
+                editText3.hint = hint3
                 binding.buttonLoginInput.text = buttonText
+
+                editText2.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+                    override fun afterTextChanged(p0: Editable?) {}
+
+                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                        binding.textInputLayoutLoginInput2.validateToken()
+                    }
+                })
+
+                editText3.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+                    override fun afterTextChanged(p0: Editable?) {}
+
+                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                        binding.textInputLayoutLoginInput3.validateLink()
+                    }
+                })
             }
 
             FragmentType.CreateLocal -> { // Define the layout for creating a new local repository
-                binding.editTextLoginInput3.visibility = View.GONE
+                binding.textInputLayoutLoginInput3.visibility = View.GONE
 
                 binding.textFieldLoginInput1.text = cardText1
                 binding.textFieldLoginInput2.text = cardText2
-                binding.editTextLoginInput1.hint = hint1
-                binding.editTextLoginInput2.hint = hint2
+                binding.textInputLayoutLoginInput1.editText!!.hint = hint1
+                binding.textInputLayoutLoginInput2.editText!!.hint = hint2
                 binding.buttonLoginInput.text = buttonText
             }
 
             FragmentType.ProvideToken -> { // Define layout for providing PAT
-                binding.editTextLoginInput3.visibility = View.GONE
+                binding.textInputLayoutLoginInput3.visibility = View.GONE
 
                 binding.textFieldLoginInput1.text = cardText1
                 binding.textFieldLoginInput2.text = cardText2
-                binding.editTextLoginInput1.setText(text1)
-                binding.editTextLoginInput1.isEnabled = false
-                binding.editTextLoginInput2.hint = "Personal Access Token"
+                binding.textInputLayoutLoginInput1.editText!!.setText(text1)
+                binding.textInputLayoutLoginInput1.editText!!.isEnabled = false
+                binding.textInputLayoutLoginInput2.editText!!.hint = "Personal Access Token"
                 binding.buttonLoginInput.text = buttonText
+
+                editText2.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+                    override fun afterTextChanged(p0: Editable?) {
+                        binding.textInputLayoutLoginInput2.validateToken()
+                    }
+                })
             }
         }
 
@@ -89,8 +137,8 @@ class GitLoginInputFragment : Fragment() {
                 }
 
                 FragmentType.CreateLocal -> { // New local repository to create
-                    val profileName = binding.editTextLoginInput1.text.toString()
-                    val repoName = binding.editTextLoginInput2.text.toString()
+                    val profileName = binding.textInputLayoutLoginInput1.editText!!.text.toString()
+                    val repoName = binding.textInputLayoutLoginInput2.editText!!.text.toString()
 
                     if (profileName.isEmpty() || repoName.isEmpty()) {
                         view.showShortSnackbar("Please fill in all fields")
@@ -114,8 +162,8 @@ class GitLoginInputFragment : Fragment() {
                 }
 
                 FragmentType.ProvideToken -> {
-                    val token = binding.editTextLoginInput2.text.toString()
-                    if (isPersonalAccessToken(token)) {
+                    val token = binding.textInputLayoutLoginInput2.editText!!.text.toString()
+                    if (token.isPersonalAccessToken()) {
                         val userProfileName = userProfilesViewModel.selectedUserProfile.value?.profileName ?: return@setOnClickListener
                         userProfilesViewModel.selectedUserPrefs.insertOrReplace(userProfileName, token)
 
@@ -130,47 +178,56 @@ class GitLoginInputFragment : Fragment() {
         }
     }
 
-    // Regular expression courtesy of https://gist.github.com/magnetikonline/073afe7909ffdd6f10ef06a00bc3bc88
-    private fun isPersonalAccessToken(token: String): Boolean {
-        val pattern = "^ghp_[a-zA-Z0-9]{36}$".toRegex()
-        return token.trim().matches(pattern)
-    }
-
     companion object {
+        private const val CARD_TEXT_1 = "cardText1"
+        private const val CARD_TEXT_2 = "cardText2"
+        private const val HINT_1 = "hint1"
+        private const val HINT_2 = "hint2"
+        private const val HINT_3 = "hint3"
+        private const val TEXT_1 = "text1"
+        private const val BUTTON_TEXT = "buttonText"
+        private const val FRAGMENT_TYPE = "fragmentType"
+
         fun newInstanceRemoteLogin(cardText1: String, cardText2: String, hint1: String, hint2: String, hint3: String,
                                    buttonText: String) = GitLoginInputFragment().apply {
-            this.cardText1 = cardText1
-            this.cardText2 = cardText2
-            this.hint1 = hint1
-            this.hint2 = hint2
-            this.hint3 = hint3
-            this.text1 = ""
-            this.buttonText = buttonText
-            this.fragmentType = FragmentType.CloneRemote
+            arguments = Bundle().apply {
+                putString(CARD_TEXT_1, cardText1)
+                putString(CARD_TEXT_2, cardText2)
+                putString(HINT_1, hint1)
+                putString(HINT_2, hint2)
+                putString(HINT_3, hint3)
+                putString(TEXT_1, "")
+                putString(BUTTON_TEXT, buttonText)
+                putSerializable(FRAGMENT_TYPE, FragmentType.CloneRemote)
+            }
         }
 
         fun newInstanceNewLocal(cardText1: String, cardText2: String, hint1: String, hint2: String,
                                 buttonText: String) = GitLoginInputFragment().apply {
-            this.cardText1 = cardText1
-            this.cardText2 = cardText2
-            this.hint1 = hint1
-            this.hint2 = hint2
-            this.hint3 = ""
-            this.text1 = ""
-            this.buttonText = buttonText
-            this.fragmentType = FragmentType.CreateLocal
+            arguments = Bundle().apply {
+                putString(CARD_TEXT_1, cardText1)
+                putString(CARD_TEXT_2, cardText2)
+                putString(HINT_1, hint1)
+                putString(HINT_2, hint2)
+                putString(HINT_3, "")
+                putString(TEXT_1, "")
+                putString(BUTTON_TEXT, buttonText)
+                putSerializable(FRAGMENT_TYPE, FragmentType.CreateLocal)
+            }
         }
 
         fun newInstanceProvideToken(cardText1: String, cardText2: String, text1: String,
                                     buttonText: String) = GitLoginInputFragment().apply {
-            this.cardText1 = cardText1
-            this.cardText2 = cardText2
-            this.hint1 = ""
-            this.hint2 = ""
-            this.hint3 = ""
-            this.text1 = text1
-            this.buttonText = buttonText
-            this.fragmentType = FragmentType.ProvideToken
+            arguments = Bundle().apply {
+                putString(CARD_TEXT_1, cardText1)
+                putString(CARD_TEXT_2, cardText2)
+                putString(HINT_1, "")
+                putString(HINT_2, "")
+                putString(HINT_3, "")
+                putString(TEXT_1, text1)
+                putString(BUTTON_TEXT, buttonText)
+                putString(FRAGMENT_TYPE, fragmentType.name)
+            }
         }
     }
 }

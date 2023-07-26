@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.content.Context
 import android.graphics.Color
@@ -15,12 +15,12 @@ import android.widget.AdapterView
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.gitnotes.databinding.FragmentGitLoginBinding
+import com.ljuntyg.gitnotes.databinding.FragmentGitLoginBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class GitLoginFragment(private val selectedRepository: Repository) : DialogFragment() {
+class GitLoginFragment : DialogFragment() {
     private var _binding: FragmentGitLoginBinding? = null
     private val binding get() = _binding!!
 
@@ -94,7 +94,7 @@ class GitLoginFragment(private val selectedRepository: Repository) : DialogFragm
         // will be set manually and locked to a position, so this listener needs to be disabled
         if (!userProfilesViewModel.loggedIn) {
             binding.spinnerLogin.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                     if (position == 0) { // "New user profile" selected
                         binding.containerLogin.visibility = View.GONE
                         binding.viewpagerLogin.visibility = View.VISIBLE
@@ -125,7 +125,7 @@ class GitLoginFragment(private val selectedRepository: Repository) : DialogFragm
             val tokenInputFragment = GitLoginInputFragment.newInstanceProvideToken(
                 "Provide PAT for User",
                 "No PAT (Personal Access Token) found for user. Please provide a PAT with access to the repository.",
-                selectedRepository.httpsLink,
+                userProfilesViewModel.selectedRepository.value!!.httpsLink,
                 "Provide PAT"
             )
 

@@ -1,10 +1,10 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.navigation.NavController
 import androidx.recyclerview.widget.RecyclerView
-import com.example.gitnotes.databinding.RecyclerViewRowBinding
+import com.ljuntyg.gitnotes.databinding.RecyclerViewRowBinding
 
 class NoteListAdapter(private val navController: NavController) : RecyclerView.Adapter<NoteListAdapter.NoteViewHolder>() {
 

@@ -1,88 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="16dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="8dp"
-    app:contentPadding="16dp">
+    android:layout_height="wrap_content">
 
-    <LinearLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_margin="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="8dp"
+        app:contentPadding="16dp">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_handling_create1"
-            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="8dp"
-            app:errorTextAppearance="@dimen/text_size_small"
-            app:boxBackgroundColor="@android:color/transparent">
+            android:orientation="vertical">
 
-            <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/text_input_layout_handling_create1"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                app:boxBackgroundColor="@android:color/transparent"
+                app:errorTextAppearance="@dimen/text_size_small">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:ellipsize="end"
+                    android:hint="@string/repo_name"
+                    android:inputType="text"
+                    android:minHeight="48dp"
+                    android:textSize="@dimen/text_size_medium" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!--<EditText
+                android:id="@+id/edit_text_handling_create1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="48dp"
+                android:layout_marginBottom="16dp"
                 android:textSize="@dimen/text_size_medium"
                 android:hint="@string/repo_name"
-                android:inputType="text"
-                android:ellipsize="end"
-                android:background="@android:color/transparent" />
+                android:inputType="text" />-->
 
-        </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/text_input_layout_handling_create2"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                app:boxBackgroundColor="@android:color/transparent"
+                app:errorTextAppearance="@dimen/text_size_small">
 
-        <!--<EditText
-            android:id="@+id/edit_text_handling_create1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:layout_marginBottom="16dp"
-            android:textSize="@dimen/text_size_medium"
-            android:hint="@string/repo_name"
-            android:inputType="text" />-->
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:ellipsize="end"
+                    android:hint="@string/repo_link"
+                    android:inputType="text"
+                    android:minHeight="48dp"
+                    android:textSize="@dimen/text_size_medium" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/text_input_layout_handling_create2"
-            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="8dp"
-            app:errorTextAppearance="@dimen/text_size_small"
-            app:boxBackgroundColor="@android:color/transparent">
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputEditText
+            <!--<EditText
+                android:id="@+id/edit_text_handling_create2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="48dp"
+                android:layout_marginBottom="16dp"
                 android:textSize="@dimen/text_size_medium"
                 android:hint="@string/repo_link"
-                android:inputType="text"
-                android:ellipsize="end"
-                android:background="@android:color/transparent" />
+                android:inputType="text" />-->
 
-        </com.google.android.material.textfield.TextInputLayout>
+            <Button
+                android:id="@+id/button_handling_create"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#28A745"
+                android:minHeight="48dp"
+                android:text="@string/add_repo"
+                android:textSize="@dimen/text_size_medium" />
+        </LinearLayout>
 
-        <!--<EditText
-            android:id="@+id/edit_text_handling_create2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:layout_marginBottom="16dp"
-            android:textSize="@dimen/text_size_medium"
-            android:hint="@string/repo_link"
-            android:inputType="text" />-->
+    </androidx.cardview.widget.CardView>
 
-        <Button
-            android:id="@+id/button_handling_create"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:textSize="@dimen/text_size_medium"
-            android:backgroundTint="#28A745"
-            android:text="@string/add_repo" />
-    </LinearLayout>
-
-</androidx.cardview.widget.CardView>
+</ScrollView>

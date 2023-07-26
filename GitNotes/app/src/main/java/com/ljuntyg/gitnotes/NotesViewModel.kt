@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

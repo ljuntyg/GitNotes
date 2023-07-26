@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import androidx.room.Dao
 import androidx.room.Entity

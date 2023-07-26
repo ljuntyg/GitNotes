@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -10,7 +10,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
 import androidx.navigation.fragment.NavHostFragment
-import com.example.gitnotes.databinding.ActivityMainBinding
+import com.ljuntyg.gitnotes.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 

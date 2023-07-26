@@ -1,8 +1,6 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
-import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -14,7 +12,7 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.example.gitnotes.databinding.FragmentNoteBinding
+import com.ljuntyg.gitnotes.databinding.FragmentNoteBinding
 
 class NoteFragment : Fragment() {
     private var _binding: FragmentNoteBinding? = null
@@ -25,17 +23,10 @@ class NoteFragment : Fragment() {
 
     private var newNote: Boolean = false
 
-    // Used to handle getParcelable(String key) deprecation (deprecated in API level 33)
-    // in favor of the new getParcelable(String key, Class class) if version >= API 33
-    private inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> getParcelable(key, T::class.java)
-        else -> @Suppress("DEPRECATION") getParcelable(key) as? T
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let { // See nav_graph.xml for fragments passing data to this Fragment
-            note = it.parcelable("note")?: Note()
+            note = it.parcelable("note") ?: Note()
             newNote = it.getBoolean("new_note")
         }
     }

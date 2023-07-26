@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,7 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.gitnotes.databinding.FragmentRecyclerViewBinding
+import com.ljuntyg.gitnotes.databinding.FragmentRecyclerViewBinding
 import kotlinx.coroutines.launch
 
 class RecyclerViewFragment : Fragment() {
@@ -94,7 +94,7 @@ class RecyclerViewFragment : Fragment() {
                 when (menuItem.itemId) {
                     R.id.action_git -> {
                         if (!userProfilesViewModel.loggedIn) {
-                            val gitLoginDialog = GitLoginFragment(Repository(profileName = "", name = "", httpsLink = ""))
+                            val gitLoginDialog = GitLoginFragment()
                             gitLoginDialog.show(requireActivity().supportFragmentManager, "GitLoginFragment")
                         } else {
                             val gitHandlingFragment = GitHandlingFragment()

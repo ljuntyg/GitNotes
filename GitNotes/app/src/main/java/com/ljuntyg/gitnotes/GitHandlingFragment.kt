@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.content.Context
 import android.graphics.Color
@@ -14,7 +14,7 @@ import android.view.WindowManager
 import android.widget.AdapterView
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.gitnotes.databinding.FragmentGitHandlingBinding
+import com.ljuntyg.gitnotes.databinding.FragmentGitHandlingBinding
 
 class GitHandlingFragment : DialogFragment() {
     private var _binding: FragmentGitHandlingBinding? = null

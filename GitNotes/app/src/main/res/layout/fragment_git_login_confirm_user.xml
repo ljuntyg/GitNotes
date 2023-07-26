@@ -26,8 +26,8 @@
             android:id="@+id/button_login_confirm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="@string/confirm"
-            android:textSize="@dimen/text_size_medium"
-            android:layout_marginTop="16dp" />
+            android:textSize="@dimen/text_size_medium" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.os.Bundle
 import android.text.Editable
@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.gitnotes.databinding.FragmentGitHandlingCreateBinding
+import com.ljuntyg.gitnotes.databinding.FragmentGitHandlingCreateBinding
 import kotlinx.coroutines.launch
 
 

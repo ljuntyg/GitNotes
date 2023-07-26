@@ -16,25 +16,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/title"
+            android:importantForAutofill="no"
             android:inputType="text"
             android:paddingBottom="24dp"
             android:textSize="@dimen/text_size_huge_plus"
-            android:importantForAutofill="no"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/edit_text_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:hint="@string/body"
-            android:inputType="textMultiLine"
+            android:background="@null"
             android:gravity="top|start"
+            android:hint="@string/body"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine"
+            android:minHeight="48dp"
             android:overScrollMode="ifContentScrolls"
             android:padding="10dp"
             android:scrollbars="vertical"
-            android:textSize="@dimen/text_size_medium_plus"
-            android:importantForAutofill="no"
-            android:background="@null"/>
+            android:textSize="@dimen/text_size_medium_plus" />
+
     </LinearLayout>
+
 </ScrollView>

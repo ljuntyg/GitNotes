@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,7 +8,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.gitnotes.databinding.FragmentGitLoginConfirmUserBinding
+import com.ljuntyg.gitnotes.databinding.FragmentGitLoginConfirmUserBinding
 import kotlinx.coroutines.launch
 
 

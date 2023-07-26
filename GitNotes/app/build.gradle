@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.gitnotes'
+    namespace 'com.ljuntyg.gitnotes'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.gitnotes"
+        applicationId "com.ljuntyg.gitnotes"
         minSdk 24
         targetSdk 34
         versionCode 1

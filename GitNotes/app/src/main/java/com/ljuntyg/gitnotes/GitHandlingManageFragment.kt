@@ -1,4 +1,4 @@
-package com.example.gitnotes
+package com.ljuntyg.gitnotes
 
 import android.content.Context
 import android.os.Build
@@ -11,12 +11,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
-import com.example.gitnotes.databinding.FragmentGitHandlingManageBinding
+import com.ljuntyg.gitnotes.databinding.FragmentGitHandlingManageBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,14 +24,16 @@ import org.eclipse.jgit.api.PullCommand
 import org.eclipse.jgit.api.PushCommand
 import org.eclipse.jgit.lib.ConfigConstants
 import org.eclipse.jgit.lib.RepositoryBuilder
-import org.eclipse.jgit.lib.Repository as JRepository
 import org.eclipse.jgit.lib.RepositoryCache
 import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.eclipse.jgit.util.FS
 import java.io.File
+import java.nio.file.Path
 import java.time.Instant
 import java.time.format.DateTimeFormatter
+import kotlin.io.path.createTempDirectory
+import org.eclipse.jgit.lib.Repository as JRepository
 
 class GitHandlingManageFragment : Fragment() {
     private var _binding: FragmentGitHandlingManageBinding? = null
@@ -106,6 +107,7 @@ class GitHandlingManageFragment : Fragment() {
                         binding.linearLayoutHandlingManage.visibility = View.VISIBLE
                     } else {
                         binding.linearLayoutHandlingManage.visibility = View.GONE
+                        editText.setHint(R.string.no_repo_link)
                     }
                 }
             }
@@ -142,13 +144,13 @@ class GitHandlingManageFragment : Fragment() {
                     view.showShortSnackbar("Pushing repository...")
 
                     if ((commitToJGit(jgitRepo, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-                        && pushJGitToRemote(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)))
+                        && verifyAndPush(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)))
                     {
                         view.showShortSnackbar("Successfully pushed repository")
                     }
                 } else { // Request token from user
                     // Open login fragment
-                    val loginFragment = GitLoginFragment(selectedRepository)
+                    val loginFragment = GitLoginFragment()
                     loginFragment.show(requireActivity().supportFragmentManager, "GitLoginFragment")
                 }
             }
@@ -167,14 +169,14 @@ class GitHandlingManageFragment : Fragment() {
 
                     view.showShortSnackbar("Pulling repository...")
 
-                    if (pullToJGitFromRemote(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)) {
+                    if (verifyAndPull(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)) {
                         view.showShortSnackbar("Successfully pulled repository")
 
                         initNotesFromFiles(jgitRepo)
                     }
                 } else { // Request token from user
                     // Open login fragment
-                    val loginFragment = GitLoginFragment(selectedRepository)
+                    val loginFragment = GitLoginFragment()
                     loginFragment.show(requireActivity().supportFragmentManager, "GitLoginFragment")
                 }
             }
@@ -200,8 +202,9 @@ class GitHandlingManageFragment : Fragment() {
         _binding = null
     }
 
-    // TODO: Change to take Git object instead of File object
-    /** fun isGitNotesRepository(dir: File): Boolean {
+    private fun isGitNotesRepository(git: Git): Boolean {
+        val dir = git.repository.directory.parentFile
+
         val files = dir.listFiles()
         if (files == null || files.isEmpty()) return true
 
@@ -209,7 +212,7 @@ class GitHandlingManageFragment : Fragment() {
             .all { file ->
                 file.extension == "txt" && file.bufferedReader().use { it.readLine() }.startsWith("Title: ")
             }
-    } */
+    }
 
     private suspend fun createNoteFiles(jgit: Git, notes: List<Note>) = withContext(Dispatchers.IO) {
         val dir = jgit.repository.directory.parentFile
@@ -287,6 +290,37 @@ class GitHandlingManageFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O) // For Path to File conversion
+    private suspend fun verifyAndPush(jgit: Git, remoteLink: String, token: String): Boolean = withContext(Dispatchers.IO) {
+        val tempDirPath: Path = createTempDirectory("gitnotes")
+        val tempDir = tempDirPath.toFile()
+        val tempJgit: Git
+
+        try {
+            // Clone the remote repo into a temporary local repo
+            tempJgit = Git.cloneRepository()
+                .setURI(remoteLink)
+                .setDirectory(tempDir)
+                .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
+                .call()
+
+            if (!isGitNotesRepository(tempJgit)) {
+                // If the verification fails, delete the temporary repo and return false
+                tempJgit.repository.close()
+                tempDir.deleteRecursively()
+                view?.showShortSnackbar("ERROR: Remote is not a GitNotes repository")
+                return@withContext false
+            }
+
+            // If the verification succeeds, push the changes to the remote repo
+            return@withContext pushJGitToRemote(jgit, remoteLink, token)
+        } catch (e: Exception) {
+            Log.d("MYLOG", "Exception when verifying and pushing: $e")
+            view?.showShortSnackbar("ERROR: ${e.message}")
+            return@withContext false
+        }
+    }
+
     private suspend fun pushJGitToRemote(jgit: Git, httpsLink: String, token: String): Boolean = withContext(
         Dispatchers.IO) {
         return@withContext try {
@@ -312,6 +346,37 @@ class GitHandlingManageFragment : Fragment() {
             Log.d("MYLOG", "Exception when pushing: $e")
             view?.showShortSnackbar("ERROR: ${e.message}")
             false
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O) // For Path to File conversion
+    private suspend fun verifyAndPull(jgit: Git, remoteLink: String, token: String): Boolean = withContext(Dispatchers.IO) {
+        val tempDirPath: Path = createTempDirectory("gitnotes")
+        val tempDir = tempDirPath.toFile()
+        val tempJgit: Git
+
+        try {
+            // Clone the remote repo into a temporary local repo
+            tempJgit = Git.cloneRepository()
+                .setURI(remoteLink)
+                .setDirectory(tempDir)
+                .setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
+                .call()
+
+            if (!isGitNotesRepository(tempJgit)) {
+                // If the verification fails, delete the temporary repo and return false
+                tempJgit.repository.close()
+                tempDir.deleteRecursively()
+                view?.showShortSnackbar("ERROR: Remote is not a GitNotes repository")
+                return@withContext false
+            }
+
+            // If the verification succeeds, pull the changes into the actual repo
+            return@withContext pullToJGitFromRemote(jgit, remoteLink, token)
+        } catch (e: Exception) {
+            Log.d("MYLOG", "Exception when verifying and pulling: $e")
+            view?.showShortSnackbar("ERROR: ${e.message}")
+            return@withContext false
         }
     }
 
