@@ -4,7 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
-class LoginViewPagerAdapter(fragmentActivity: FragmentActivity) :
+class LoginViewPagerAdapter(private val fragmentActivity: FragmentActivity) :
     FragmentStateAdapter(fragmentActivity) {
 
     override fun getItemCount(): Int = 2
@@ -12,20 +12,20 @@ class LoginViewPagerAdapter(fragmentActivity: FragmentActivity) :
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> GitLoginInputFragment.newInstanceRemoteLogin(
-                "Clone remote GitNotes repository with PAT",
-                "Login using a PAT (Personal Access Token) and clone a given remote GitNotes repository via an HTTPS link.",
-                "Local profile name",
-                "Personal Access Token",
-                "Repository HTTPS link",
-                "Clone Remote Repository"
+                fragmentActivity.getString(R.string.clone_remote_title),
+                fragmentActivity.getString(R.string.clone_remote_body),
+                fragmentActivity.getString(R.string.local_profile_name),
+                fragmentActivity.getString(R.string.personal_access_token),
+                fragmentActivity.getString(R.string.repo_link),
+                fragmentActivity.getString(R.string.clone_remote_button)
             )
 
             else -> GitLoginInputFragment.newInstanceNewLocal(
-                "Create new local GitNotes repository",
-                "Create a new local GitNotes repository. An HTTPS link to a remote repository can be added for the local repository later.",
-                "Local profile name",
-                "Local repository name",
-                "Create Local Repository"
+                fragmentActivity.getString(R.string.create_local_title),
+                fragmentActivity.getString(R.string.create_local_body),
+                fragmentActivity.getString(R.string.local_profile_name),
+                fragmentActivity.getString(R.string.local_repo_name),
+                fragmentActivity.getString(R.string.create_local_button)
             )
         }
     }

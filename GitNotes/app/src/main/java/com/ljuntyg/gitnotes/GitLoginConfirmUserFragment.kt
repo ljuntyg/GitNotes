@@ -32,27 +32,43 @@ class GitLoginConfirmUserFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Get reference to UserProfilesViewModel
-        val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
-        val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
+        val userProfilesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .userProfilesDao()
+        val repositoriesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
-        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+        val userProfilesViewModelFactory =
+            UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
+        userProfilesViewModel = ViewModelProvider(
+            requireActivity(),
+            userProfilesViewModelFactory
+        )[UserProfilesViewModel::class.java]
 
         binding.buttonLoginConfirm.setOnClickListener {
             userProfilesViewModel.viewModelScope.launch {
                 val userProfile = userProfilesViewModel.getUserProfileAsync(profileName).await()
                 if (userProfile == null) {
-                    view.showShortSnackbar("Unable to find user profile")
+                    view.showShortSnackbar(getString(R.string.unable_find_user_profile))
                 } else {
                     userProfilesViewModel.setSelectedUserProfile(userProfile)
                     // If selected user does not have stored credentials, then overwrite the last user's token with a new empty token,
                     // if selected user DOES have stored credentials, then nothing will be done and the token will be kept as is for user
                     if (userProfilesViewModel.selectedUserPrefs.getCredentials().first != userProfile.profileName) {
-                        userProfilesViewModel.selectedUserPrefs.insertOrReplace(userProfile.profileName, "")
+                        userProfilesViewModel.selectedUserPrefs.insertOrReplace(
+                            userProfile.profileName,
+                            ""
+                        )
                     }
                     userProfilesViewModel.loggedIn = true
 
-                    requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar("Logged in as ${userProfile.profileName}")
+                    requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar(
+                        getString(
+                            R.string.logged_in_as,
+                            userProfile.profileName
+                        )
+                    )
 
                     (parentFragment as DialogFragment).dismiss()
                 }

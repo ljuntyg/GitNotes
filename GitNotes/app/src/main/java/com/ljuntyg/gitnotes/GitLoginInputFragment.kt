@@ -26,6 +26,7 @@ class GitLoginInputFragment : Fragment() {
     private lateinit var buttonText: String
 
     private lateinit var fragmentType: FragmentType
+
     private enum class FragmentType {
         CloneRemote,
         CreateLocal,
@@ -52,15 +53,23 @@ class GitLoginInputFragment : Fragment() {
             hint3 = it.getString(HINT_3) ?: ""
             text1 = it.getString(TEXT_1) ?: ""
             buttonText = it.getString(BUTTON_TEXT) ?: ""
-            fragmentType = FragmentType.valueOf(it.getString(FRAGMENT_TYPE)!!) /**?: "CloneRemote")*/
+            fragmentType = FragmentType.valueOf(it.getString(FRAGMENT_TYPE)!!)
         }
 
         // Get reference to UserProfilesViewModel
-        val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
-        val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
+        val userProfilesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .userProfilesDao()
+        val repositoriesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
-        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+        val userProfilesViewModelFactory =
+            UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
+        userProfilesViewModel = ViewModelProvider(
+            requireActivity(),
+            userProfilesViewModelFactory
+        )[UserProfilesViewModel::class.java]
 
         val editText1 = binding.textInputLayoutLoginInput1.editText!!
         val editText2 = binding.textInputLayoutLoginInput2.editText!!
@@ -80,13 +89,9 @@ class GitLoginInputFragment : Fragment() {
                 editText2.addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
-                    override fun afterTextChanged(p0: Editable?) {}
+                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
-                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                        val editText = binding.textInputLayoutLoginInput2.editText!!
-                        if (editText.text.toString().isPersonalAccessToken()) {
-
-                        }
+                    override fun afterTextChanged(p0: Editable?) {
                         binding.textInputLayoutLoginInput2.validateToken()
                     }
                 })
@@ -94,9 +99,9 @@ class GitLoginInputFragment : Fragment() {
                 editText3.addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
-                    override fun afterTextChanged(p0: Editable?) {}
+                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
-                    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                    override fun afterTextChanged(p0: Editable?) {
                         binding.textInputLayoutLoginInput3.validateLink()
                     }
                 })
@@ -119,7 +124,8 @@ class GitLoginInputFragment : Fragment() {
                 binding.textFieldLoginInput2.text = cardText2
                 binding.textInputLayoutLoginInput1.editText!!.setText(text1)
                 binding.textInputLayoutLoginInput1.editText!!.isEnabled = false
-                binding.textInputLayoutLoginInput2.editText!!.hint = "Personal Access Token"
+                binding.textInputLayoutLoginInput2.editText!!.hint =
+                    getString(R.string.personal_access_token)
                 binding.buttonLoginInput.text = buttonText
 
                 editText2.addTextChangedListener(object : TextWatcher {
@@ -145,12 +151,13 @@ class GitLoginInputFragment : Fragment() {
                     val repoName = binding.textInputLayoutLoginInput2.editText!!.text.toString()
 
                     if (profileName.isEmpty() || repoName.isEmpty()) {
-                        view.showShortSnackbar("Please fill in all fields")
+                        view.showShortSnackbar(getString(R.string.please_fill_all_fields))
 
                         return@setOnClickListener
                     }
 
-                    val newRepository = Repository(profileName = profileName, name = repoName, httpsLink = "")
+                    val newRepository =
+                        Repository(profileName = profileName, name = repoName, httpsLink = "")
                     val newProfile = UserProfile(profileName, mutableListOf(newRepository))
 
                     userProfilesViewModel.insert(newProfile)
@@ -158,7 +165,8 @@ class GitLoginInputFragment : Fragment() {
                     userProfilesViewModel.loggedIn = true
                     userProfilesViewModel.selectedUserPrefs.insertOrReplace(profileName, "")
 
-                    requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar("Created new local repository")
+                    requireActivity().findViewById<View>(android.R.id.content)
+                        .showShortSnackbar(getString(R.string.created_local_repo))
 
                     parentFragmentManager.findFragmentByTag("GitLoginFragment")?.let {
                         (it as DialogFragment).dismiss()
@@ -168,14 +176,24 @@ class GitLoginInputFragment : Fragment() {
                 FragmentType.ProvideToken -> {
                     val token = binding.textInputLayoutLoginInput2.editText!!.text.toString()
                     if (token.isPersonalAccessToken()) {
-                        val userProfileName = userProfilesViewModel.selectedUserProfile.value?.profileName ?: return@setOnClickListener
-                        userProfilesViewModel.selectedUserPrefs.insertOrReplace(userProfileName, token)
+                        val userProfileName =
+                            userProfilesViewModel.selectedUserProfile.value?.profileName
+                                ?: return@setOnClickListener
+                        userProfilesViewModel.selectedUserPrefs.insertOrReplace(
+                            userProfileName,
+                            token
+                        )
 
-                        view.showShortSnackbar("Successfully registered token for $userProfileName")
+                        view.showShortSnackbar(
+                            getString(
+                                R.string.success_register_token_for,
+                                userProfileName
+                            )
+                        )
 
                         // TODO: Figure out way to automatically get back to handling dialog fragment
                     } else {
-                        view.showShortSnackbar("Not a valid token")
+                        view.showShortSnackbar(getString(R.string.invalid_token))
                     }
                 }
             }
@@ -203,8 +221,10 @@ class GitLoginInputFragment : Fragment() {
         private const val BUTTON_TEXT = "buttonText"
         private const val FRAGMENT_TYPE = "fragmentType"
 
-        fun newInstanceRemoteLogin(cardText1: String, cardText2: String, hint1: String, hint2: String, hint3: String,
-                                   buttonText: String) = GitLoginInputFragment().apply {
+        fun newInstanceRemoteLogin(
+            cardText1: String, cardText2: String, hint1: String, hint2: String, hint3: String,
+            buttonText: String
+        ) = GitLoginInputFragment().apply {
             arguments = Bundle().apply {
                 putString(CARD_TEXT_1, cardText1)
                 putString(CARD_TEXT_2, cardText2)
@@ -217,8 +237,10 @@ class GitLoginInputFragment : Fragment() {
             }
         }
 
-        fun newInstanceNewLocal(cardText1: String, cardText2: String, hint1: String, hint2: String,
-                                buttonText: String) = GitLoginInputFragment().apply {
+        fun newInstanceNewLocal(
+            cardText1: String, cardText2: String, hint1: String, hint2: String,
+            buttonText: String
+        ) = GitLoginInputFragment().apply {
             arguments = Bundle().apply {
                 putString(CARD_TEXT_1, cardText1)
                 putString(CARD_TEXT_2, cardText2)
@@ -231,8 +253,10 @@ class GitLoginInputFragment : Fragment() {
             }
         }
 
-        fun newInstanceProvideToken(cardText1: String, cardText2: String, text1: String,
-                                    buttonText: String) = GitLoginInputFragment().apply {
+        fun newInstanceProvideToken(
+            cardText1: String, cardText2: String, text1: String,
+            buttonText: String
+        ) = GitLoginInputFragment().apply {
             arguments = Bundle().apply {
                 putString(CARD_TEXT_1, cardText1)
                 putString(CARD_TEXT_2, cardText2)

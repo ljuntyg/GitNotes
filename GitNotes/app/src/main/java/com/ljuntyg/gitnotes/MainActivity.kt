@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleSendText(intent: Intent) {
         val sharedText =
-            intent.getStringExtra(Intent.EXTRA_TEXT) ?: "ERROR: No text from intent found"
+            intent.getStringExtra(Intent.EXTRA_TEXT) ?: getString(R.string.error_intent_no_text)
         val longTitle = sharedText.split("\n").first()
         val maxLength = 250
         val title = if (longTitle.length <= maxLength) {

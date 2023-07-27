@@ -29,8 +29,8 @@ class RecyclerViewFragment : Fragment() {
     private lateinit var userProfilesViewModel: UserProfilesViewModel
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRecyclerViewBinding.inflate(inflater, container, false)
         return binding.root
@@ -44,14 +44,23 @@ class RecyclerViewFragment : Fragment() {
         val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
         val notesRepository = NotesRepository(notesDao)
         val notesViewModelFactory = NotesViewModelFactory(notesRepository)
-        notesViewModel = ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
+        notesViewModel =
+            ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
 
         // Same as above but for the UserProfilesViewModel
-        val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
-        val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
+        val userProfilesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .userProfilesDao()
+        val repositoriesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
-        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+        val userProfilesViewModelFactory =
+            UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
+        userProfilesViewModel = ViewModelProvider(
+            requireActivity(),
+            userProfilesViewModelFactory
+        )[UserProfilesViewModel::class.java]
 
         // Initialize RecyclerView with Adapter for notes
         val adapter = NoteListAdapter(findNavController())
@@ -64,24 +73,24 @@ class RecyclerViewFragment : Fragment() {
             notes?.let { adapter.notes = it }
         }
 
-        /** Example of adding note. insert() will call the database repository
-            insert() which will launch a coroutine to insert into the DAO
-        val note1 = Note(null,"titleTEST", "body");
-        notesViewModel.insert(note1); */
-
         // Set up FAB click listener
         binding.fab.setOnClickListener {
             val newNote = Note()
             lifecycleScope.launch {
                 newNote.id =
-                    notesViewModel.insertAsync(newNote).await()  // This will suspend until result is available
-                val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(newNote, true)
+                    notesViewModel.insertAsync(newNote)
+                        .await()  // This will suspend until result is available
+                val action =
+                    RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(
+                        newNote,
+                        true
+                    )
                 findNavController().navigate(action)
             }
         }
 
         // Menu handling
-        (requireActivity() as MenuHost).addMenuProvider(object: MenuProvider {
+        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menu.clear()
                 menuInflater.inflate(R.menu.menu_base, menu)
@@ -93,10 +102,16 @@ class RecyclerViewFragment : Fragment() {
                     R.id.action_git -> {
                         if (!userProfilesViewModel.loggedIn) {
                             val gitLoginDialog = GitLoginFragment()
-                            gitLoginDialog.show(requireActivity().supportFragmentManager, "GitLoginFragment")
+                            gitLoginDialog.show(
+                                requireActivity().supportFragmentManager,
+                                "GitLoginFragment"
+                            )
                         } else {
                             val gitHandlingFragment = GitHandlingFragment()
-                            gitHandlingFragment.show(requireActivity().supportFragmentManager, "GitHandlingFragment")
+                            gitHandlingFragment.show(
+                                requireActivity().supportFragmentManager,
+                                "GitHandlingFragment"
+                            )
                         }
                         return true
                     }

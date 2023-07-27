@@ -52,7 +52,7 @@ class NoteFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         if (newNote) {
-            view.showShortSnackbar("New note created")
+            view.showShortSnackbar(getString(R.string.created_note))
         }
 
         val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
@@ -74,7 +74,7 @@ class NoteFragment : Fragment() {
                 when (menuItem.itemId) {
                     R.id.action_delete -> {
                         notesViewModel.delete(note)
-                        view.showShortSnackbar("Note deleted")
+                        view.showShortSnackbar(getString(R.string.deleted_note))
                         findNavController().popBackStack()
                         return true
                     }

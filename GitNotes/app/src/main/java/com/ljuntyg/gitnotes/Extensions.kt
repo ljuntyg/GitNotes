@@ -36,7 +36,7 @@ fun TextInputLayout.validateToken(): Boolean {
     val input = this.editText!!.text.toString()
 
     return if (!input.isPersonalAccessToken() && input.isNotEmpty()) {
-        this.error = "Not a valid Token"
+        this.error = context.getString(R.string.invalid_token)
         false
     } else {
         this.error = null
@@ -56,7 +56,7 @@ fun TextInputLayout.validateLink(): Boolean {
     val input = this.editText!!.text.toString()
 
     return if (!input.isValidHTTPSlink() && input.isNotEmpty()) {
-        this.error = "Not a valid HTTPS link"
+        this.error = context.getString(R.string.invalid_link)
         false
     } else {
         this.error = null

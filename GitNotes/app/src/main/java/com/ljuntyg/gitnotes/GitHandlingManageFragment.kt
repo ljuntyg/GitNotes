@@ -99,7 +99,10 @@ class GitHandlingManageFragment : Fragment() {
 
             // Check the text of this new selected repository and set EditText accordingly
             if (selectedRepository.httpsLink.isValidHTTPSlink()) { // Valid HTTPS link
-                if (selectedRepository.httpsLink.getRepoNameFromUrl() == selectedRepository.name.trim()) {
+                val remoteName = selectedRepository.httpsLink.trim().getRepoNameFromUrl()
+                val localName = selectedRepository.name.trim()
+
+                if (remoteName == localName) {
                     // All good, set text to link and select end of text to ensure repo name is seen
                     editText.setText(selectedRepository.httpsLink)
                     editText.setSelection(editText.text.length)
@@ -112,8 +115,8 @@ class GitHandlingManageFragment : Fragment() {
                     binding.linearLayoutHandlingManage.visibility = View.GONE
                     binding.textInputLayoutHandlingManage.error = getString(
                         R.string.repo_name_mismatch,
-                        selectedRepository.httpsLink.getRepoNameFromUrl(),
-                        selectedRepository.name.trim()
+                        remoteName,
+                        localName
                     )
                 }
             } else { // Not a valid HTTPS link
@@ -149,16 +152,18 @@ class GitHandlingManageFragment : Fragment() {
                         )
                     }
                     if (newRepoLink.isValidHTTPSlink()) {
-                        val repoName = newRepoLink.getRepoNameFromUrl()
-                        if (repoName == selectedRepository.name.trim()) {
+                        val remoteName = newRepoLink.trim().getRepoNameFromUrl()
+                        val localName = selectedRepository.name.trim()
+
+                        if (remoteName == localName) {
                             binding.linearLayoutHandlingManage.visibility = View.VISIBLE
                             binding.textInputLayoutHandlingManage.isErrorEnabled = false
                         } else {
                             binding.linearLayoutHandlingManage.visibility = View.GONE
                             binding.textInputLayoutHandlingManage.error = getString(
                                 R.string.repo_name_mismatch,
-                                selectedRepository.httpsLink.getRepoNameFromUrl(),
-                                selectedRepository.name.trim()
+                                remoteName,
+                                localName
                             )
                         }
                     } else {
@@ -188,7 +193,7 @@ class GitHandlingManageFragment : Fragment() {
                     Log.d("MYLOG", "Credentials matching user found")
 
                     val jgitRepo = getOrCreateJGitRepository(selectedRepository)
-                    view.showIndefiniteSnackbar("Pushing repository...")
+                    view.showIndefiniteSnackbar(getString(R.string.pushing_repo))
                     createNoteFiles(jgitRepo, notesViewModel.allNotes.value!!)
 
                     if ((commitToJGit(jgitRepo, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
@@ -198,9 +203,9 @@ class GitHandlingManageFragment : Fragment() {
                             userProfilesViewModel.selectedUserPrefs.getCredentials().second!!
                         ))
                     ) {
-                        view.showShortSnackbar("Successfully pushed repository")
+                        view.showShortSnackbar(getString(R.string.success_push))
                     } else {
-                        view.showShortSnackbar("Failed to push repository")
+                        view.showShortSnackbar(getString(R.string.failed_push))
                     }
                 } else { // Request token from user
                     // Open login fragment
@@ -220,7 +225,7 @@ class GitHandlingManageFragment : Fragment() {
                     // TODO: Pull with credentials
 
                     val jgitRepo = getOrCreateJGitRepository(selectedRepository)
-                    view.showIndefiniteSnackbar("Pulling repository...")
+                    view.showIndefiniteSnackbar(getString(R.string.pulling_repo))
 
                     if (verifyAndPull(
                             jgitRepo,
@@ -228,11 +233,11 @@ class GitHandlingManageFragment : Fragment() {
                             userProfilesViewModel.selectedUserPrefs.getCredentials().second!!
                         )
                     ) {
-                        view.showShortSnackbar("Successfully pulled repository")
+                        view.showShortSnackbar(getString(R.string.success_pull))
 
                         initNotesFromFiles(jgitRepo)
                     } else {
-                        view.showShortSnackbar("Failed to pull repository")
+                        view.showShortSnackbar(getString(R.string.failed_pull))
                     }
                 } else { // Request token from user
                     // Open login fragment
@@ -250,9 +255,14 @@ class GitHandlingManageFragment : Fragment() {
                     userProfilesViewModel.selectedUserProfile.value!!
                 ).await()
                 if (deletionSuccessful) {
-                    view.showShortSnackbar("Deleted repository ${selectedRepository.name}")
+                    view.showShortSnackbar(
+                        getString(
+                            R.string.deleted_repo,
+                            selectedRepository.name
+                        )
+                    )
                 } else {
-                    view.showShortSnackbar("Failed to delete repository")
+                    view.showShortSnackbar(getString(R.string.failed_delete_repo))
                 }
 
                 binding.textInputLayoutHandlingManage.editText!!.setText("")
@@ -352,7 +362,7 @@ class GitHandlingManageFragment : Fragment() {
             commit != null
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when committing: $e")
-            view?.showShortSnackbar("ERROR: ${e.message}")
+            view?.showShortSnackbar(getString(R.string.error, e.message))
             false
         }
     }
@@ -378,7 +388,7 @@ class GitHandlingManageFragment : Fragment() {
                     // If the verification fails, delete the temporary repo and return false
                     tempJgit.repository.close()
                     tempDir.deleteRecursively()
-                    view?.showShortSnackbar("ERROR: Remote is not a GitNotes repository")
+                    view?.showShortSnackbar(getString(R.string.error_remote_not_gitnotes_repo))
                     return@withContext false
                 }
 
@@ -386,7 +396,7 @@ class GitHandlingManageFragment : Fragment() {
                 return@withContext pushJGitToRemote(jgit, remoteLink, token)
             } catch (e: Exception) {
                 Log.d("MYLOG", "Exception when verifying and pushing: $e")
-                view?.showShortSnackbar("ERROR: ${e.message}")
+                view?.showShortSnackbar(getString(R.string.error, e.message))
                 return@withContext false
             }
         }
@@ -397,7 +407,7 @@ class GitHandlingManageFragment : Fragment() {
         ) {
             return@withContext try {
                 val pushCommand: PushCommand = jgit.push()
-                pushCommand.remote = httpsLink
+                pushCommand.remote = httpsLink.trim()
                 pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
                 pushCommand.setPushAll()
 
@@ -417,7 +427,7 @@ class GitHandlingManageFragment : Fragment() {
                 success
             } catch (e: Exception) {
                 Log.d("MYLOG", "Exception when pushing: $e")
-                view?.showShortSnackbar("ERROR: ${e.message}")
+                view?.showShortSnackbar(getString(R.string.error, e.message))
                 false
             }
         }
@@ -442,7 +452,7 @@ class GitHandlingManageFragment : Fragment() {
                     // If the verification fails, delete the temporary repo and return false
                     tempJgit.repository.close()
                     tempDir.deleteRecursively()
-                    view?.showShortSnackbar("ERROR: Remote is not a GitNotes repository")
+                    view?.showShortSnackbar(getString(R.string.error_remote_not_gitnotes_repo))
                     return@withContext false
                 }
 
@@ -450,7 +460,7 @@ class GitHandlingManageFragment : Fragment() {
                 return@withContext pullToJGitFromRemote(jgit, remoteLink, token)
             } catch (e: Exception) {
                 Log.d("MYLOG", "Exception when verifying and pulling: $e")
-                view?.showShortSnackbar("ERROR: ${e.message}")
+                view?.showShortSnackbar(getString(R.string.error, e.message))
                 return@withContext false
             }
         }
@@ -465,7 +475,7 @@ class GitHandlingManageFragment : Fragment() {
                     ConfigConstants.CONFIG_REMOTE_SECTION,
                     "origin",
                     "url",
-                    httpsLink
+                    httpsLink.trim()
                 )
                 repoConfig.setString(
                     ConfigConstants.CONFIG_REMOTE_SECTION,
@@ -484,7 +494,7 @@ class GitHandlingManageFragment : Fragment() {
                 pullResult.mergeResult.mergeStatus.isSuccessful
             } catch (e: Exception) {
                 Log.d("MYLOG", "Exception when pulling: $e")
-                view?.showShortSnackbar("ERROR: ${e.message}")
+                view?.showShortSnackbar(getString(R.string.error, e.message))
                 false
             }
         }

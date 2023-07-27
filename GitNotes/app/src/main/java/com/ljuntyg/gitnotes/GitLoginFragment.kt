@@ -41,21 +41,33 @@ class GitLoginFragment : DialogFragment() {
         dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         // Get reference to UserProfilesViewModel
-        val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
-        val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
+        val userProfilesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .userProfilesDao()
+        val repositoriesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
-        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+        val userProfilesViewModelFactory =
+            UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
+        userProfilesViewModel = ViewModelProvider(
+            requireActivity(),
+            userProfilesViewModelFactory
+        )[UserProfilesViewModel::class.java]
 
         // Populate the spinner
         userProfilesViewModel.allUserProfiles.observe(viewLifecycleOwner) { profiles ->
             profiles?.let {
                 // This block will be executed whenever the data changes, including when the data is first loaded
-                val data = mutableListOf("New user profile")
+                val data = mutableListOf(getString(R.string.new_user_profile))
                 val allProfileNames = profiles.map { profile -> profile.profileName }
                 data.addAll(allProfileNames)
                 val adapter =
-                    CustomSpinnerAdapter(requireContext(), android.R.layout.simple_spinner_item, data)
+                    CustomSpinnerAdapter(
+                        requireContext(),
+                        android.R.layout.simple_spinner_item,
+                        data
+                    )
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 binding.spinnerLogin.adapter = adapter
 
@@ -71,7 +83,8 @@ class GitLoginFragment : DialogFragment() {
                 if (userProfilesViewModel.loggedIn) {
                     for (i in 0 until binding.spinnerLogin.adapter.count) {
                         if (binding.spinnerLogin.getItemAtPosition(i).toString()
-                            == userProfilesViewModel.selectedUserProfile.value?.profileName) {
+                            == userProfilesViewModel.selectedUserProfile.value?.profileName
+                        ) {
                             binding.spinnerLogin.setSelection(i)
                             binding.spinnerLogin.isEnabled = false
                         }
@@ -93,40 +106,47 @@ class GitLoginFragment : DialogFragment() {
         // Set spinner on item selected listener if not logged in, if logged in then the spinner
         // will be set manually and locked to a position, so this listener needs to be disabled
         if (!userProfilesViewModel.loggedIn) {
-            binding.spinnerLogin.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                    if (position == 0) { // "New user profile" selected
-                        binding.containerLogin.visibility = View.GONE
-                        binding.viewpagerLogin.visibility = View.VISIBLE
-                    } else { // Some user profile selected
-                        binding.containerLogin.visibility = View.VISIBLE
-                        binding.viewpagerLogin.visibility = View.GONE
+            binding.spinnerLogin.onItemSelectedListener =
+                object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(
+                        parent: AdapterView<*>,
+                        view: View?,
+                        position: Int,
+                        id: Long
+                    ) {
+                        if (position == 0) { // "New user profile" selected
+                            binding.containerLogin.visibility = View.GONE
+                            binding.viewpagerLogin.visibility = View.VISIBLE
+                        } else { // Some user profile selected
+                            binding.containerLogin.visibility = View.VISIBLE
+                            binding.viewpagerLogin.visibility = View.GONE
 
-                        userProfilesViewModel.viewModelScope.launch {
-                            val selectedProfileName =
-                                binding.spinnerLogin.getItemAtPosition(position).toString()
-                            val userProfileDeferred =
-                                userProfilesViewModel.getUserProfileAsync(selectedProfileName)
-                            val userProfile =
-                                userProfileDeferred.await() // Await here to get the UserProfile
+                            userProfilesViewModel.viewModelScope.launch {
+                                val selectedProfileName =
+                                    binding.spinnerLogin.getItemAtPosition(position).toString()
+                                val userProfileDeferred =
+                                    userProfilesViewModel.getUserProfileAsync(selectedProfileName)
+                                val userProfile =
+                                    userProfileDeferred.await() // Await here to get the UserProfile
 
-                            withContext(Dispatchers.Main) {
-                                confirmUserFragment.setConfirmText(
-                                    userProfile?.profileName ?: "No user profile found"
-                                )
+                                withContext(Dispatchers.Main) {
+                                    confirmUserFragment.setConfirmText(
+                                        userProfile?.profileName
+                                            ?: getString(R.string.no_user_profile_found)
+                                    )
+                                }
                             }
                         }
                     }
-                }
 
-                override fun onNothingSelected(parent: AdapterView<*>) {}
-            }
+                    override fun onNothingSelected(parent: AdapterView<*>) {}
+                }
         } else { // User logged in, show fragment to request token from user
             val tokenInputFragment = GitLoginInputFragment.newInstanceProvideToken(
-                "Provide PAT for User",
-                "No PAT (Personal Access Token) found for user. Please provide a PAT with access to the repository.",
+                getString(R.string.provide_token_title),
+                getString(R.string.provide_token_body),
                 userProfilesViewModel.selectedRepository.value!!.httpsLink,
-                "Provide PAT"
+                getString(R.string.provide_token_button)
             )
 
             childFragmentManager.beginTransaction()
@@ -147,11 +167,13 @@ class GitLoginFragment : DialogFragment() {
                 val bounds: Rect = windowMetrics.bounds
                 Pair(bounds.width().toDouble(), bounds.height().toDouble())
             }
+
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
                 val outMetrics = DisplayMetrics()
                 defaultDisplay.getRealMetrics(outMetrics)
                 Pair(outMetrics.widthPixels.toDouble(), outMetrics.heightPixels.toDouble())
             }
+
             else -> {
                 val outMetrics = DisplayMetrics()
                 defaultDisplay.getMetrics(outMetrics)

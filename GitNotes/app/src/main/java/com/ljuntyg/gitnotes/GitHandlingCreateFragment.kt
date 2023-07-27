@@ -32,21 +32,67 @@ class GitHandlingCreateFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Get reference to UserProfilesViewModel
-        val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
-        val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
+        val userProfilesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .userProfilesDao()
+        val repositoriesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
-        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+        val userProfilesViewModelFactory =
+            UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
+        userProfilesViewModel = ViewModelProvider(
+            requireActivity(),
+            userProfilesViewModelFactory
+        )[UserProfilesViewModel::class.java]
 
-        binding.textInputLayoutHandlingCreate2.editText!!.addTextChangedListener(object : TextWatcher {
+        val editText1 = binding.textInputLayoutHandlingCreate1.editText!!
+        val editText2 = binding.textInputLayoutHandlingCreate2.editText!!
+
+        val textWatcher2 = object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun afterTextChanged(p0: Editable?) {
-                binding.textInputLayoutHandlingCreate2.validateLink()
+                val repoLink = p0.toString().trim()
+
+                if (repoLink.isValidHTTPSlink()) {
+                    val remoteName = repoLink.getRepoNameFromUrl()
+                    val localName = editText1.text.toString().trim()
+
+                    if (remoteName == localName) {
+                        binding.textInputLayoutHandlingCreate2.isErrorEnabled = false
+                    } else {
+                        binding.textInputLayoutHandlingCreate2.error = getString(
+                            R.string.repo_name_mismatch,
+                            remoteName,
+                            localName
+                        )
+                    }
+                } else {
+                    if (repoLink.isNotEmpty()) {
+                        binding.textInputLayoutHandlingCreate2.error =
+                            getString(R.string.invalid_link)
+                    } else {
+                        binding.textInputLayoutHandlingCreate2.isErrorEnabled = false
+                    }
+                }
             }
-        })
+        }
+
+        val textWatcher1 = object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun afterTextChanged(p0: Editable?) {
+                textWatcher2.afterTextChanged(editText2.text)
+            }
+        }
+
+        editText1.addTextChangedListener(textWatcher1)
+        editText2.addTextChangedListener(textWatcher2)
 
         // Create repository button
         binding.buttonHandlingCreate.setOnClickListener {
@@ -55,11 +101,11 @@ class GitHandlingCreateFragment : Fragment() {
                 val repoLink = binding.textInputLayoutHandlingCreate2.editText!!.text.toString()
                 val selectedUser = userProfilesViewModel.selectedUserProfile.value!!
                 if (repoName.isEmpty()) {
-                    view.showShortSnackbar("Please enter a name for the repository")
+                    view.showShortSnackbar(getString(R.string.enter_repo_name))
                     return@launch
                 } else {
                     if (repoLink.isNotEmpty() && !repoLink.isValidHTTPSlink()) {
-                        view.showShortSnackbar("Invalid HTTPS link")
+                        view.showShortSnackbar(getString(R.string.invalid_link))
 
                         return@launch
                     }
@@ -67,14 +113,16 @@ class GitHandlingCreateFragment : Fragment() {
                     val newRepo = Repository(
                         profileName = selectedUser.profileName,
                         name = repoName,
-                        httpsLink = repoLink)
-                    val insertionSuccessful = userProfilesViewModel.insertRepoForUserAsync(newRepo, selectedUser).await()
+                        httpsLink = repoLink
+                    )
+                    val insertionSuccessful =
+                        userProfilesViewModel.insertRepoForUserAsync(newRepo, selectedUser).await()
                     if (insertionSuccessful) {
-                        view.showShortSnackbar("Created new repository $repoName")
+                        view.showShortSnackbar(getString(R.string.created_repo, repoName))
 
                         userProfilesViewModel.setSelectedRepository(newRepo)
                     } else {
-                        view.showShortSnackbar("Failed to create new repository")
+                        view.showShortSnackbar(getString(R.string.failed_create_repo))
                     }
                 }
 

@@ -102,8 +102,10 @@ abstract class ProfilesReposDatabase : RoomDatabase() {
         fun getDatabase(context: Context): ProfilesReposDatabase {
             if (INSTANCE == null) {
                 synchronized(this) {
-                    INSTANCE = Room.databaseBuilder(context,
-                        ProfilesReposDatabase::class.java, "profiles_repos_database").build()
+                    INSTANCE = Room.databaseBuilder(
+                        context,
+                        ProfilesReposDatabase::class.java, "profiles_repos_database"
+                    ).build()
                 }
             }
             return INSTANCE!!
@@ -111,7 +113,10 @@ abstract class ProfilesReposDatabase : RoomDatabase() {
     }
 }
 
-class ProfilesReposRepository(private val userProfilesDao: UserProfilesDao, private val repositoriesDao: RepositoriesDao) {
+class ProfilesReposRepository(
+    private val userProfilesDao: UserProfilesDao,
+    private val repositoriesDao: RepositoriesDao
+) {
 
     fun getAllUserProfiles(): Flow<List<UserProfile>> =
         userProfilesDao.getAllUserProfiles()
@@ -125,7 +130,8 @@ class ProfilesReposRepository(private val userProfilesDao: UserProfilesDao, priv
     suspend fun getUserProfile(name: String): UserProfile? {
         return withContext(Dispatchers.IO) {
             val userProfile = userProfilesDao.getUserProfile(name).firstOrNull()
-            userProfile?.repositories = repositoriesDao.getRepositoriesForUser(name).first().toMutableList()
+            userProfile?.repositories =
+                repositoriesDao.getRepositoriesForUser(name).first().toMutableList()
             userProfile
         }
     }

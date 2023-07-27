@@ -38,20 +38,32 @@ class GitHandlingFragment : DialogFragment() {
         dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         // Get reference to UserProfilesViewModel
-        val userProfilesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).userProfilesDao()
-        val repositoriesDao = ProfilesReposDatabase.getDatabase(requireActivity().applicationContext).repositoriesDao()
+        val userProfilesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .userProfilesDao()
+        val repositoriesDao =
+            ProfilesReposDatabase.getDatabase(requireActivity().applicationContext)
+                .repositoriesDao()
         val profilesReposRepository = ProfilesReposRepository(userProfilesDao, repositoriesDao)
-        val userProfilesViewModelFactory = UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
-        userProfilesViewModel = ViewModelProvider(requireActivity(), userProfilesViewModelFactory)[UserProfilesViewModel::class.java]
+        val userProfilesViewModelFactory =
+            UserProfilesViewModelFactory(requireActivity().application, profilesReposRepository)
+        userProfilesViewModel = ViewModelProvider(
+            requireActivity(),
+            userProfilesViewModelFactory
+        )[UserProfilesViewModel::class.java]
 
         // Populate the spinner
-        val adapter = CustomSpinnerAdapter(requireContext(), android.R.layout.simple_spinner_item, mutableListOf<String>())
+        val adapter = CustomSpinnerAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            mutableListOf<String>()
+        )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerHandling.adapter = adapter
 
         userProfilesViewModel.selectedUserRepositories.observe(viewLifecycleOwner) { repositories ->
             // Update the data for the spinner
-            val updatedData = mutableListOf("New repository")
+            val updatedData = mutableListOf(getString(R.string.new_repo))
             updatedData.addAll(repositories.map { repository -> repository.name })
 
             // Update the spinner
@@ -77,38 +89,45 @@ class GitHandlingFragment : DialogFragment() {
         val manageRepoFragment = GitHandlingManageFragment()
 
         // Set spinner on item selected listener
-        binding.spinnerHandling.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (position == 0) { // "New repository" selected
-                    childFragmentManager.beginTransaction()
-                        .replace(R.id.container_handling, createRepoFragment)
-                        .commit()
+        binding.spinnerHandling.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>,
+                    view: View,
+                    position: Int,
+                    id: Long
+                ) {
+                    if (position == 0) { // "New repository" selected
+                        childFragmentManager.beginTransaction()
+                            .replace(R.id.container_handling, createRepoFragment)
+                            .commit()
 
-                    userProfilesViewModel.setSelectedRepository(
-                        userProfilesViewModel.selectedUserRepositories.value?.find {
-                                repo -> repo.name == "NEW REPOSITORY"
-                        } ?: Repository(
-                            profileName = userProfilesViewModel.selectedUserProfile.value!!.profileName,
-                            name = "NEW REPOSITORY",
-                            httpsLink = ""
+                        userProfilesViewModel.setSelectedRepository(
+                            userProfilesViewModel.selectedUserRepositories.value?.find { repo ->
+                                repo.name == "NEW REPOSITORY"
+                            } ?: Repository(
+                                profileName = userProfilesViewModel.selectedUserProfile.value!!.profileName,
+                                name = "NEW REPOSITORY",
+                                httpsLink = ""
+                            )
                         )
-                    )
-                } else { // Some repository selected
-                    val selectedRepository = userProfilesViewModel.selectedUserRepositories.value?.find {
-                        repo -> repo.name == binding.spinnerHandling.selectedItem.toString()
+                    } else { // Some repository selected
+                        val selectedRepository =
+                            userProfilesViewModel.selectedUserRepositories.value?.find { repo ->
+                                repo.name == binding.spinnerHandling.selectedItem.toString()
+                            }
+
+                        // TODO: Will this behave well on null?
+                        userProfilesViewModel.setSelectedRepository(selectedRepository ?: return)
+
+                        childFragmentManager.beginTransaction()
+                            .replace(R.id.container_handling, manageRepoFragment)
+                            .commit()
                     }
-
-                    // TODO: Will this behave well on null?
-                    userProfilesViewModel.setSelectedRepository(selectedRepository ?: return)
-
-                    childFragmentManager.beginTransaction()
-                        .replace(R.id.container_handling, manageRepoFragment)
-                        .commit()
                 }
-            }
 
-            override fun onNothingSelected(p0: AdapterView<*>?) {}
-        }
+                override fun onNothingSelected(p0: AdapterView<*>?) {}
+            }
     }
 
     override fun onResume() {
@@ -123,11 +142,13 @@ class GitHandlingFragment : DialogFragment() {
                 val bounds: Rect = windowMetrics.bounds
                 Pair(bounds.width().toDouble(), bounds.height().toDouble())
             }
+
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
                 val outMetrics = DisplayMetrics()
                 defaultDisplay.getRealMetrics(outMetrics)
                 Pair(outMetrics.widthPixels.toDouble(), outMetrics.heightPixels.toDouble())
             }
+
             else -> {
                 val outMetrics = DisplayMetrics()
                 defaultDisplay.getMetrics(outMetrics)

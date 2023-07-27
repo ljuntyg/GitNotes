@@ -88,7 +88,7 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        // Delete all Git repositories (by deleting any repository folders), doesn't delete database repositories
+        // Delete all Git repositories (by deleting any repository folders in app storage), doesn't delete database repositories
         binding.button4.setOnClickListener {
             userProfilesViewModel.viewModelScope.launch {
                 val filesDir = requireActivity().filesDir
