@@ -48,7 +48,7 @@ class GitHandlingManageFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         _binding = FragmentGitHandlingManageBinding.inflate(inflater, container, false)
         return binding.root
@@ -164,7 +164,8 @@ class GitHandlingManageFragment : Fragment() {
                     } else {
                         if (newRepoLink.isNotEmpty()) {
                             binding.linearLayoutHandlingManage.visibility = View.GONE
-                            binding.textInputLayoutHandlingManage.error = getString(R.string.invalid_link)
+                            binding.textInputLayoutHandlingManage.error =
+                                getString(R.string.invalid_link)
                         } else {
                             editText.hint = getString(R.string.no_repo_link)
                             binding.linearLayoutHandlingManage.visibility = View.GONE
@@ -198,6 +199,8 @@ class GitHandlingManageFragment : Fragment() {
                         ))
                     ) {
                         view.showShortSnackbar("Successfully pushed repository")
+                    } else {
+                        view.showShortSnackbar("Failed to push repository")
                     }
                 } else { // Request token from user
                     // Open login fragment
@@ -228,6 +231,8 @@ class GitHandlingManageFragment : Fragment() {
                         view.showShortSnackbar("Successfully pulled repository")
 
                         initNotesFromFiles(jgitRepo)
+                    } else {
+                        view.showShortSnackbar("Failed to pull repository")
                     }
                 } else { // Request token from user
                     // Open login fragment
@@ -311,7 +316,7 @@ class GitHandlingManageFragment : Fragment() {
 
                 if (noteId != null) {
                     val note = Note(noteId, noteTitle, noteBody)
-                    notesViewModel.insertAsync(note)
+                    note.id = notesViewModel.insertAsync(note).await()
                 }
             }
         }
@@ -352,6 +357,8 @@ class GitHandlingManageFragment : Fragment() {
         }
     }
 
+    // TODO: TransportException if there's no internet connection
+    // TODO: Can't push unrelated local repository to unrelated remote
     @RequiresApi(Build.VERSION_CODES.O) // For Path to File conversion
     private suspend fun verifyAndPush(jgit: Git, remoteLink: String, token: String): Boolean =
         withContext(Dispatchers.IO) {
@@ -415,6 +422,7 @@ class GitHandlingManageFragment : Fragment() {
             }
         }
 
+    // TODO: Doesn't delete old files from non-related local repository when pulling from non-related remote
     @RequiresApi(Build.VERSION_CODES.O) // For Path to File conversion
     private suspend fun verifyAndPull(jgit: Git, remoteLink: String, token: String): Boolean =
         withContext(Dispatchers.IO) {

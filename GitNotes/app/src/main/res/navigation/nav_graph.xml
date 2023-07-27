@@ -17,7 +17,15 @@
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_right"
             app:popEnterAnim="@anim/slide_in_right"
-            app:popExitAnim="@anim/slide_out_right"/>
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_recyclerViewFragment_to_settingsFragment"
+            app:destination="@id/settings_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -26,10 +34,16 @@
 
         <argument
             android:name="note"
-            app:argType="com.ljuntyg.gitnotes.Note"/>
+            app:argType="com.ljuntyg.gitnotes.Note" />
 
         <argument
             android:name="new_note"
-            app:argType="boolean"/>
+            app:argType="boolean" />
     </fragment>
+
+    <fragment
+        android:id="@+id/settings_fragment"
+        android:name="com.ljuntyg.gitnotes.SettingsFragment">
+    </fragment>
+
 </navigation>

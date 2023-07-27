@@ -47,7 +47,8 @@ fun TextInputLayout.validateToken(): Boolean {
 
 // Regular expression courtesy of https://stackoverflow.com/questions/2514859/regular-expression-for-git-repository
 fun String.isValidHTTPSlink(): Boolean {
-    val pattern = "((git|ssh|http(s)?)|(git@[\\w\\.]+))(:(//)?)([\\w\\.@\\:/\\-~]+)(\\.git)(/)?".toRegex()
+    val pattern =
+        "((git|ssh|http(s)?)|(git@[\\w\\.]+))(:(//)?)([\\w\\.@\\:/\\-~]+)(\\.git)(/)?".toRegex()
     return this.trim().matches(pattern)
 }
 

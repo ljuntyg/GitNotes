@@ -119,6 +119,9 @@ class ProfilesReposRepository(private val userProfilesDao: UserProfilesDao, priv
     fun getRepositoriesForUser(profileName: String): Flow<List<Repository>> =
         repositoriesDao.getRepositoriesForUser(profileName)
 
+    fun getAllRepositories(): Flow<List<Repository>> =
+        repositoriesDao.getAllRepositories()
+
     suspend fun getUserProfile(name: String): UserProfile? {
         return withContext(Dispatchers.IO) {
             val userProfile = userProfilesDao.getUserProfile(name).firstOrNull()

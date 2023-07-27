@@ -29,7 +29,7 @@ class GitLoginFragment : DialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentGitLoginBinding.inflate(inflater, container, false)
         return binding.root
     }

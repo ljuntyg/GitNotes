@@ -31,11 +31,9 @@ class RecyclerViewFragment : Fragment() {
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View? {
-
+    ): View {
         _binding = FragmentRecyclerViewBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -74,10 +72,9 @@ class RecyclerViewFragment : Fragment() {
         // Set up FAB click listener
         binding.fab.setOnClickListener {
             val newNote = Note()
-            val job = notesViewModel.insertAsync(newNote)
             lifecycleScope.launch {
                 newNote.id =
-                    job.await().toInt().toLong()  // This will suspend until result is available
+                    notesViewModel.insertAsync(newNote).await()  // This will suspend until result is available
                 val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(newNote, true)
                 findNavController().navigate(action)
             }
@@ -87,6 +84,7 @@ class RecyclerViewFragment : Fragment() {
         (requireActivity() as MenuHost).addMenuProvider(object: MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menu.clear()
+                menuInflater.inflate(R.menu.menu_base, menu)
                 menuInflater.inflate(R.menu.menu_main, menu)
             }
 

@@ -14,7 +14,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 // Pass application to then get application context to pass to creation of SelectedUserPrefs singleton
-class UserProfilesViewModel(application: Application, private val repository: ProfilesReposRepository) : ViewModel() {
+class UserProfilesViewModel(
+    application: Application,
+    private val repository: ProfilesReposRepository
+) : ViewModel() {
     // Use a backing property to hide the mutable LiveData from the UI
     private val _allUserProfiles = MutableLiveData<List<UserProfile>>()
     val allUserProfiles: LiveData<List<UserProfile>> get() = _allUserProfiles
@@ -28,15 +31,30 @@ class UserProfilesViewModel(application: Application, private val repository: Pr
     private val _selectedRepository = MutableLiveData<Repository>()
     val selectedRepository: LiveData<Repository> get() = _selectedRepository
 
+    private val _allRepositories = MutableLiveData<List<Repository>>()
+    val allRepositories: LiveData<List<Repository>> get() = _allRepositories
+
     var loggedIn = false
     val selectedUserPrefs: SelectedUserPrefs = SelectedUserPrefs.getInstance(application)
 
     init {
-        // Automatically updates the list of user profiles when the database changes
+        // Automatically updates the list of user profiles/all repositories when the database changes
         viewModelScope.launch {
-            repository.getAllUserProfiles().collect { userProfilesList ->
-                _allUserProfiles.value = userProfilesList.mapNotNull { repository.getUserProfile(it.profileName) }
-                Log.d("MYLOG", "Size of allUserProfiles: " + allUserProfiles.value?.size.toString())
+            launch {
+                repository.getAllUserProfiles().collect { userProfilesList ->
+                    _allUserProfiles.value =
+                        userProfilesList.mapNotNull { repository.getUserProfile(it.profileName) }
+                    Log.d(
+                        "MYLOG",
+                        "Size of allUserProfiles: " + allUserProfiles.value?.size.toString()
+                    )
+                }
+            }
+
+            launch {
+                repository.getAllRepositories().collect { repositoriesList ->
+                    _allRepositories.value = repositoriesList
+                }
             }
         }
     }
@@ -102,7 +120,10 @@ class UserProfilesViewModel(application: Application, private val repository: Pr
 
 // For ViewModel classes with non-empty constructor, ViewModelProvider
 // requires class implementing the ViewModelProvider.Factory interface
-class UserProfilesViewModelFactory(private val application: Application, private val repository: ProfilesReposRepository) : ViewModelProvider.Factory {
+class UserProfilesViewModelFactory(
+    private val application: Application,
+    private val repository: ProfilesReposRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(UserProfilesViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

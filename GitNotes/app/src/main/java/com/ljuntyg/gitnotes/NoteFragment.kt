@@ -66,6 +66,7 @@ class NoteFragment : Fragment() {
         (requireActivity() as MenuHost).addMenuProvider(object: MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menu.clear()
+                menuInflater.inflate(R.menu.menu_base, menu)
                 menuInflater.inflate(R.menu.menu_note, menu)
             }
 

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">GitNotes</string>
     <string name="action_settings">Settings</string>
-    <!-- Strings used for fragments for navigation -->
+
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
@@ -22,6 +22,19 @@
     <string name="no_repo_link">No HTTPS link for repository</string>
     <string name="invalid_link">Not a valid HTTPS link</string>
     <string name="repo_name_mismatch">Remote name \"%s\" does not match local name \"%s\"</string>
+
+    <string name="change_user_profile">Change user profile</string>
+    <string name="reset_token">Reset Personal Access Token</string>
+    <string name="delete_all_notes">Delete all notes</string>
+    <string name="delete_all_git_repos">Delete all Git repositories</string>
+
+    <string name="no_user_token_not_deleted">No user was found, no token was deleted</string>
+    <string name="token_deleted">Token deleted</string>
+    <string name="notes_deleted">All notes deleted</string>
+    <string name="incomplete_note_deletion">Error whilst deleting notes</string>
+    <string name="no_notes_notes_not_deleted">No notes found</string>
+    <string name="no_repos_gits_not_deleted">No repositories found</string>
+    <string name="git_repos_deleted">All Git repositories deleted</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
@@ -59,6 +72,4 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
