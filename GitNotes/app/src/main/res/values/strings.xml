@@ -34,11 +34,14 @@
     <string name="failed_delete_repo">Failed to delete repository</string>
     <string name="pushing_repo">Pushing repository…</string>
     <string name="pulling_repo">Pulling repository…</string>
+    <string name="cloning_repo">Cloning repository…</string>
     <string name="failed_push">Failed to push repository</string>
     <string name="failed_pull">Failed to pull repository</string>
+    <string name="failed_clone">Failed to clone repository</string>
     <string name="success_push">Successfully pushed repository</string>
     <string name="success_pull">Successfully pulled repository</string>
-    <string name="error_remote_not_gitnotes_repo">"ERROR: Remote is not a GitNotes repository"</string>
+    <string name="success_clone">Successfully cloned repository</string>
+    <string name="remote_not_gitnotes_repo">"Remote is not a GitNotes repository"</string>
 
     <string name="unable_find_user_profile">"Unable to find user profile"</string>
     <string name="logged_in_as">Logged in as %s</string>
@@ -47,7 +50,7 @@
 
     <string name="personal_access_token">Personal Access Token</string>
     <string name="provide_token_title">"Provide PAT for User"</string>
-    <string name="provide_token_body">No PAT (Personal Access Token) found for user. Please provide a PAT with access to the repository.</string>
+    <string name="provide_token_body">No PAT (Personal Access Token) found for user. Please provide a valid PAT with access to the repository.</string>
     <string name="provide_token_button">Provide PAT</string>
     <string name="please_fill_all_fields">"Please fill in all fields"</string>
     <string name="created_local_repo">Created new local repository</string>
@@ -73,6 +76,7 @@
     <string name="deleted_note">Note deleted</string>
 
     <string name="no_user_token_not_deleted">No user was found, no token was deleted</string>
+    <string name="no_token_found">No registered token found</string>
     <string name="token_deleted">Token deleted</string>
     <string name="notes_deleted">All notes deleted</string>
     <string name="incomplete_note_deletion">Error whilst deleting notes</string>

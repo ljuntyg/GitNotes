@@ -1,21 +1,27 @@
 package com.ljuntyg.gitnotes
 
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.ljuntyg.gitnotes.databinding.FragmentGitLoginInputBinding
+import kotlinx.coroutines.launch
 
 class GitLoginInputFragment : Fragment() {
     private var _binding: FragmentGitLoginInputBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var userProfilesViewModel: UserProfilesViewModel
+    private lateinit var notesViewModel: NotesViewModel
+    private lateinit var gitHandler: GitHandler
 
     private lateinit var cardText1: String
     private lateinit var cardText2: String
@@ -41,6 +47,7 @@ class GitLoginInputFragment : Fragment() {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -70,6 +77,15 @@ class GitLoginInputFragment : Fragment() {
             requireActivity(),
             userProfilesViewModelFactory
         )[UserProfilesViewModel::class.java]
+
+        // Get reference to NotesViewModel
+        val notesDao = NotesDatabase.getDatabase(requireActivity().applicationContext).notesDao()
+        val notesRepository = NotesRepository(notesDao)
+        val notesViewModelFactory = NotesViewModelFactory(notesRepository)
+        notesViewModel =
+            ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
+
+        gitHandler = GitHandler(requireActivity().applicationContext, notesViewModel)
 
         val editText1 = binding.textInputLayoutLoginInput1.editText!!
         val editText2 = binding.textInputLayoutLoginInput2.editText!!
@@ -143,7 +159,32 @@ class GitLoginInputFragment : Fragment() {
         binding.buttonLoginInput.setOnClickListener {
             when (fragmentType) {
                 FragmentType.CloneRemote -> { // Remote repository to clone
-                    // TODO: Implement cloning
+                    lifecycleScope.launch {
+                        // TODO: Implement cloning
+                        val profileName = editText1.text.toString()
+                        val token = editText2.text.toString()
+                        val repoLink = editText3.text.toString()
+
+                        if (profileName.isEmpty() || token.isEmpty() || repoLink.isEmpty()) {
+                            view.showShortSnackbar(getString(R.string.please_fill_all_fields))
+                        } else if (binding.textInputLayoutLoginInput2.error == null
+                            && binding.textInputLayoutLoginInput3.error == null) {
+
+                            view.showIndefiniteSnackbar(getString(R.string.cloning_repo))
+                            val newRepo = Repository(profileName = profileName, name = repoLink.getRepoNameFromUrl(), httpsLink = repoLink)
+                            val cloneResult = gitHandler.verifyAndClone(newRepo, repoLink, token)
+
+                            if (cloneResult.success) {
+                                val newUserProfile = UserProfile(profileName, mutableListOf(newRepo))
+
+                                logInAsUser(newUserProfile, getString(R.string.success_clone), token)
+                            } else if (cloneResult.exception != null) {
+                                view.showShortSnackbar(getString(R.string.error, cloneResult.exception.message))
+                            } else {
+                                view.showShortSnackbar(getString(R.string.failed_clone))
+                            }
+                        }
+                    }
                 }
 
                 FragmentType.CreateLocal -> { // New local repository to create
@@ -160,17 +201,7 @@ class GitLoginInputFragment : Fragment() {
                         Repository(profileName = profileName, name = repoName, httpsLink = "")
                     val newProfile = UserProfile(profileName, mutableListOf(newRepository))
 
-                    userProfilesViewModel.insert(newProfile)
-                    userProfilesViewModel.setSelectedUserProfile(newProfile)
-                    userProfilesViewModel.loggedIn = true
-                    userProfilesViewModel.selectedUserPrefs.insertOrReplace(profileName, "")
-
-                    requireActivity().findViewById<View>(android.R.id.content)
-                        .showShortSnackbar(getString(R.string.created_local_repo))
-
-                    parentFragmentManager.findFragmentByTag("GitLoginFragment")?.let {
-                        (it as DialogFragment).dismiss()
-                    }
+                    logInAsUser(newProfile, getString(R.string.created_local_repo), null)
                 }
 
                 FragmentType.ProvideToken -> {
@@ -267,6 +298,20 @@ class GitLoginInputFragment : Fragment() {
                 putString(BUTTON_TEXT, buttonText)
                 putString(FRAGMENT_TYPE, FragmentType.ProvideToken.name)
             }
+        }
+    }
+
+    private fun logInAsUser(userProfile: UserProfile, loginMessage: String, token: String?) {
+        userProfilesViewModel.insert(userProfile)
+        userProfilesViewModel.setSelectedUserProfile(userProfile)
+        userProfilesViewModel.loggedIn = true
+        userProfilesViewModel.selectedUserPrefs.insertOrReplace(userProfile.profileName, token ?: "")
+        userProfilesViewModel.setSelectedRepository(userProfilesViewModel.getOrCreatePlaceholderRepo(userProfile))
+
+        requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar(loginMessage)
+
+        parentFragmentManager.findFragmentByTag("GitLoginFragment")?.let {
+            (it as DialogFragment).dismiss()
         }
     }
 }

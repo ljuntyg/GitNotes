@@ -42,6 +42,7 @@ class GitHandlingManageFragment : Fragment() {
     private lateinit var userProfilesViewModel: UserProfilesViewModel
     private lateinit var notesViewModel: NotesViewModel
     private lateinit var selectedRepository: Repository
+    private lateinit var gitHandler: GitHandler
 
     private var textWatcher: TextWatcher? = null
 
@@ -79,6 +80,8 @@ class GitHandlingManageFragment : Fragment() {
         val notesViewModelFactory = NotesViewModelFactory(notesRepository)
         notesViewModel =
             ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
+
+        gitHandler = GitHandler(requireActivity().applicationContext, notesViewModel)
 
         // TODO: Messy cursor on selection, sometimes visible sometimes not
         // Keeps selectedRepository up-to-date based on e.g. changes based on spinner in GitHandlingFragment
@@ -192,18 +195,17 @@ class GitHandlingManageFragment : Fragment() {
                 ) { // Possibly valid token exists for user
                     Log.d("MYLOG", "Credentials matching user found")
 
-                    val jgitRepo = getOrCreateJGitRepository(selectedRepository)
+                    val jgitRepo = gitHandler.getOrCreateJGitRepository(selectedRepository)
                     view.showIndefiniteSnackbar(getString(R.string.pushing_repo))
-                    createNoteFiles(jgitRepo, notesViewModel.allNotes.value!!)
+                    gitHandler.createNoteFiles(jgitRepo, notesViewModel.allNotes.value!!)
 
-                    if ((commitToJGit(jgitRepo, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-                                && verifyAndPush(
-                            jgitRepo,
-                            selectedRepository.httpsLink,
-                            userProfilesViewModel.selectedUserPrefs.getCredentials().second!!
-                        ))
-                    ) {
+                    val commitResult = gitHandler.commitToJGit(jgitRepo, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+                    val pushResult = gitHandler.verifyAndPush(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)
+
+                    if (commitResult.success && pushResult.success) {
                         view.showShortSnackbar(getString(R.string.success_push))
+                    } else if (commitResult.exception != null || pushResult.exception != null) {
+                        view.showShortSnackbar(getString(R.string.error, commitResult.exception?.message ?: pushResult.exception?.message))
                     } else {
                         view.showShortSnackbar(getString(R.string.failed_push))
                     }
@@ -224,18 +226,17 @@ class GitHandlingManageFragment : Fragment() {
                     Log.d("MYLOG", "Credentials matching user found")
                     // TODO: Pull with credentials
 
-                    val jgitRepo = getOrCreateJGitRepository(selectedRepository)
+                    val jgitRepo = gitHandler.getOrCreateJGitRepository(selectedRepository)
                     view.showIndefiniteSnackbar(getString(R.string.pulling_repo))
 
-                    if (verifyAndPull(
-                            jgitRepo,
-                            selectedRepository.httpsLink,
-                            userProfilesViewModel.selectedUserPrefs.getCredentials().second!!
-                        )
-                    ) {
+                    val pullResult = gitHandler.verifyAndPull(jgitRepo, selectedRepository.httpsLink, userProfilesViewModel.selectedUserPrefs.getCredentials().second!!)
+
+                    if (pullResult.success) {
                         view.showShortSnackbar(getString(R.string.success_pull))
 
-                        initNotesFromFiles(jgitRepo)
+                        gitHandler.initNotesFromFiles(jgitRepo)
+                    } else if (pullResult.exception != null) {
+                        view.showShortSnackbar(getString(R.string.error, pullResult.exception.message))
                     } else {
                         view.showShortSnackbar(getString(R.string.failed_pull))
                     }
@@ -274,7 +275,9 @@ class GitHandlingManageFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+}
 
+    /**
     private fun isGitNotesRepository(git: Git): Boolean {
         val dir = git.repository.directory.parentFile
 
@@ -498,4 +501,4 @@ class GitHandlingManageFragment : Fragment() {
                 false
             }
         }
-}
+} */

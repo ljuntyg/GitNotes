@@ -37,6 +37,18 @@ class UserProfilesViewModel(
     var loggedIn = false
     val selectedUserPrefs: SelectedUserPrefs = SelectedUserPrefs.getInstance(application)
 
+    fun getOrCreatePlaceholderRepo(userProfile: UserProfile): Repository {
+        return selectedUserRepositories.value?.find { repo ->
+            repo.profileName == userProfile.profileName
+                    && repo.name == "NEW REPOSITORY"
+                    && repo.httpsLink == ""
+        } ?: Repository(
+            profileName = userProfile.profileName,
+            name = "NEW REPOSITORY",
+            httpsLink = ""
+        )
+    }
+
     init {
         // Automatically updates the list of user profiles/all repositories when the database changes
         viewModelScope.launch {

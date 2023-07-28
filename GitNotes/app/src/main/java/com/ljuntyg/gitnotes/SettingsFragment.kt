@@ -55,16 +55,20 @@ class SettingsFragment : Fragment() {
             ViewModelProvider(requireActivity(), notesViewModelFactory)[NotesViewModel::class.java]
 
         // Change user
-        binding.button1.setOnClickListener { }
+        binding.button1.setOnClickListener {
+            userProfilesViewModel.loggedIn = false
+            val gitLoginDialog = GitLoginFragment()
+            gitLoginDialog.show(requireActivity().supportFragmentManager, "GitLoginFragment")
+        }
 
         // Reset token
         binding.button2.setOnClickListener {
-            val user = userProfilesViewModel.selectedUserPrefs.getCredentials().first
-            if (user != null) {
+            val user = userProfilesViewModel.selectedUserPrefs.getCredentials().first ?: ""
+            if (userProfilesViewModel.selectedUserPrefs.getCredentials().second?.isNotEmpty() == true) {
                 userProfilesViewModel.selectedUserPrefs.insertOrReplace(user, "")
                 view.showShortSnackbar(getString(R.string.token_deleted))
             } else {
-                view.showShortSnackbar(getString(R.string.no_user_token_not_deleted))
+                view.showShortSnackbar(getString(R.string.no_token_found))
             }
         }
 
