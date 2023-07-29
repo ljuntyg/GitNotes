@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:title="@string/data"
+        app:icon="@drawable/database_48px">
+
+        <Preference
+            app:key="change_user_profile"
+            app:title="@string/change_user_profile"
+            app:summary="@string/change_user_summary" />
+
+        <Preference
+            app:key="reset_token"
+            app:title="@string/reset_token"
+            app:summary="@string/reset_token_summary" />
+
+        <Preference
+            app:key="delete_all_notes"
+            app:title="@string/delete_all_notes"
+            app:summary="@string/delete_all_notes_summary" />
+
+        <Preference
+            app:key="delete_all_git_repos"
+            app:title="@string/delete_all_git_repos"
+            app:summary="@string/delete_all_git_repos_summary" />
+
+        <Preference
+            app:key="delete_selected_profile"
+            app:title="@string/delete_selected_profile"
+            app:summary="@string/delete_selected_profile_summary" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="@string/statistics"
+        app:icon="@drawable/analytics_48px">
+
+        <Preference
+            app:key="login_status"
+            app:title="@string/login_status" />
+
+        <Preference
+            app:key="selected_profile"
+            app:title="@string/current_profile" />
+
+        <Preference
+            app:key="notes_count"
+            app:title="@string/number_of_notes" />
+
+        <Preference
+            app:key="profiles_count"
+            app:title="@string/number_of_profiles" />
+
+        <Preference
+            app:key="repos_count"
+            app:title="@string/number_of_repos" />
+
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

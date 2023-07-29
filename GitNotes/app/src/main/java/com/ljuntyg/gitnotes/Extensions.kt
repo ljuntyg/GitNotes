@@ -64,3 +64,17 @@ fun TextInputLayout.validateLink(): Boolean {
         true
     }
 }
+
+fun TextInputLayout.validateProfileName(allUserProfiles: List<UserProfile>): Boolean {
+    val inputName = this.editText!!.text.toString().trim()
+    val allProfileNames = allUserProfiles.map { userProfile -> userProfile.profileName.trim() }
+
+    return if (allProfileNames.contains(inputName) && inputName.isNotEmpty()) {
+        this.error = context.getString(R.string.user_already_exists, inputName)
+        false
+    } else {
+        this.error = null
+        this.isErrorEnabled = false
+        true
+    }
+}

@@ -2,6 +2,8 @@ package com.ljuntyg.gitnotes
 
 import android.app.Application
 import android.util.Log
+import android.view.View
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,13 +34,16 @@ class UserProfilesViewModel(
     private val _selectedRepository = MutableLiveData<Repository>()
     val selectedRepository: LiveData<Repository> get() = _selectedRepository
 
+    // TODO: Check for stray repositories on launch (repositories with profileName of non-existent user)?
     private val _allRepositories = MutableLiveData<List<Repository>>()
     val allRepositories: LiveData<List<Repository>> get() = _allRepositories
 
-    var loggedIn = false
+    private val _loggedIn = MutableLiveData<Boolean>()
+    val loggedIn: LiveData<Boolean> get() = _loggedIn
+
     val selectedUserPrefs: SelectedUserPrefs = SelectedUserPrefs.getInstance(application)
 
-    fun getOrCreatePlaceholderRepo(userProfile: UserProfile): Repository {
+    private fun getOrCreatePlaceholderRepo(userProfile: UserProfile): Repository {
         return selectedUserRepositories.value?.find { repo ->
             repo.profileName == userProfile.profileName
                     && repo.name == "NEW REPOSITORY"
@@ -47,6 +53,15 @@ class UserProfilesViewModel(
             name = "NEW REPOSITORY",
             httpsLink = ""
         )
+    }
+
+
+    fun logInAsUser(userProfile: UserProfile, token: String?) {
+        insert(userProfile)
+        setSelectedUserProfile(userProfile)
+        selectedUserPrefs.insertOrReplace(userProfile.profileName, token ?: "")
+        setSelectedRepository(getOrCreatePlaceholderRepo(userProfile))
+        setLoggedIn(true)
     }
 
     init {
@@ -71,20 +86,27 @@ class UserProfilesViewModel(
         }
     }
 
-    fun setSelectedUserProfile(userProfile: UserProfile) {
+    // TODO: Use postValue?
+    private var selectedUserRepositoriesCollectJob: Job? = null
+    private fun setSelectedUserProfile(userProfile: UserProfile) {
         _selectedUserProfile.value = userProfile
 
-        viewModelScope.launch {
+        selectedUserRepositoriesCollectJob?.cancel()
+
+        selectedUserRepositoriesCollectJob = viewModelScope.launch {
             repository.getRepositoriesForUser(userProfile.profileName).collect { repositoriesList ->
-                withContext(Dispatchers.Main) {
-                    _selectedUserRepositories.value = repositoriesList
-                }
+                _selectedUserRepositories.value = repositoriesList
             }
         }
     }
 
+    // TODO: Use postValue?
     fun setSelectedRepository(repo: Repository) {
         _selectedRepository.value = repo
+    }
+
+    fun setLoggedIn(value: Boolean) {
+        _loggedIn.postValue(value)
     }
 
     fun getUserProfileAsync(name: String): Deferred<UserProfile?> {

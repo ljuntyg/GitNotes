@@ -66,7 +66,6 @@ class NoteFragment : Fragment() {
         (requireActivity() as MenuHost).addMenuProvider(object: MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menu.clear()
-                menuInflater.inflate(R.menu.menu_base, menu)
                 menuInflater.inflate(R.menu.menu_note, menu)
             }
 
@@ -76,6 +75,12 @@ class NoteFragment : Fragment() {
                         notesViewModel.delete(note)
                         view.showShortSnackbar(getString(R.string.deleted_note))
                         findNavController().popBackStack()
+                        return true
+                    }
+
+                    R.id.action_settings_note -> {
+                        val action = NoteFragmentDirections.actionNoteFragmentToSettingsFragment()
+                        findNavController().navigate(action)
                         return true
                     }
                 }

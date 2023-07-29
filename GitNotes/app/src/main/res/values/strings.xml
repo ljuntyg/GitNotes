@@ -18,6 +18,11 @@
     <string name="push">Push</string>
     <string name="pull">Pull</string>
     <string name="error">ERROR: %s</string>
+    <string name="settings">Settings</string>
+    <string name="data">Data</string>
+    <string name="statistics">Statistics</string>
+    <string name="true_string">True</string>
+    <string name="false_string">False</string>
 
     <string name="new_repo">New repository</string>
     <string name="repo_name">Repository name</string>
@@ -47,6 +52,8 @@
     <string name="logged_in_as">Logged in as %s</string>
     <string name="new_user_profile">New user profile</string>
     <string name="no_user_profile_found">No user profile found</string>
+    <string name="no_user_profile_selected">No user profile is selected</string>
+    <string name="deleted_profile">Deleted user profile %s</string>
 
     <string name="personal_access_token">Personal Access Token</string>
     <string name="provide_token_title">"Provide PAT for User"</string>
@@ -70,10 +77,28 @@
     <string name="reset_token">Reset Personal Access Token</string>
     <string name="delete_all_notes">Delete all notes</string>
     <string name="delete_all_git_repos">Delete all Git repositories</string>
+    <string name="delete_selected_profile">Delete selected user profile</string>
+
+    <string name="change_user_summary">Change the selected user profile or create new profile</string>
+    <string name="reset_token_summary">Reset the current Personal Access Token if any is set</string>
+    <string name="delete_all_notes_summary">Delete all notes which are stored locally</string>
+    <string name="delete_all_git_repos_summary">Delete Git repositories in storage, does not delete repositories in the database</string>
+    <string name="delete_selected_profile_summary">Delete the selected user profile if any is selected</string>
+
+    <string name="login_status">Log-in status</string>
+    <string name="logged_in">Logged in: %s</string>
+    <string name="current_profile">Selected profile</string>
+    <string name="number_of_notes">Number of notes</string>
+    <string name="notes_count">Notes count: %s</string>
+    <string name="number_of_profiles">Number of profiles</string>
+    <string name="profiles_count">Profiles count: %s</string>
+    <string name="number_of_repos">Number of repositories</string>
+    <string name="repos_count">Repositories count: %s</string>
 
     <string name="error_intent_no_text">ERROR: No text from intent found</string>
     <string name="created_note">New note created</string>
     <string name="deleted_note">Note deleted</string>
+    <string name="user_already_exists">Profile with name %s already exists</string>
 
     <string name="no_user_token_not_deleted">No user was found, no token was deleted</string>
     <string name="no_token_found">No registered token found</string>

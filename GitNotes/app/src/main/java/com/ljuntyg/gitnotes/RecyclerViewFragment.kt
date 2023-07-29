@@ -93,14 +93,13 @@ class RecyclerViewFragment : Fragment() {
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menu.clear()
-                menuInflater.inflate(R.menu.menu_base, menu)
                 menuInflater.inflate(R.menu.menu_main, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 when (menuItem.itemId) {
                     R.id.action_git -> {
-                        if (!userProfilesViewModel.loggedIn) {
+                        if (userProfilesViewModel.loggedIn.value != true) {
                             val gitLoginDialog = GitLoginFragment()
                             gitLoginDialog.show(
                                 requireActivity().supportFragmentManager,
@@ -113,6 +112,12 @@ class RecyclerViewFragment : Fragment() {
                                 "GitHandlingFragment"
                             )
                         }
+                        return true
+                    }
+
+                    R.id.action_settings_main -> {
+                        val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToSettingsFragment()
+                        findNavController().navigate(action)
                         return true
                     }
                 }

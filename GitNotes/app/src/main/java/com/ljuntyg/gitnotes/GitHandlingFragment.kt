@@ -56,7 +56,7 @@ class GitHandlingFragment : DialogFragment() {
         val adapter = CustomSpinnerAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
-            mutableListOf<String>()
+            mutableListOf()
         )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerHandling.adapter = adapter

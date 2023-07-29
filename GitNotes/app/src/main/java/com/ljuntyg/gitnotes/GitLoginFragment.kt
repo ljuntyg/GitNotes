@@ -75,12 +75,12 @@ class GitLoginFragment : DialogFragment() {
                 val prevProfile = allProfileNames.find { profileName ->
                     profileName == userProfilesViewModel.selectedUserPrefs.getCredentials().first
                 }
-                if (!userProfilesViewModel.loggedIn && prevProfile != null) {
+                if (userProfilesViewModel.loggedIn.value != true && prevProfile != null) {
                     binding.spinnerLogin.setSelection(data.indexOf(prevProfile))
                 }
 
                 // If user is logged in, set spinner to user and lock it
-                if (userProfilesViewModel.loggedIn) {
+                if (userProfilesViewModel.loggedIn.value == true) {
                     for (i in 0 until binding.spinnerLogin.adapter.count) {
                         if (binding.spinnerLogin.getItemAtPosition(i).toString()
                             == userProfilesViewModel.selectedUserProfile.value?.profileName
@@ -105,7 +105,7 @@ class GitLoginFragment : DialogFragment() {
 
         // Set spinner on item selected listener if not logged in, if logged in then the spinner
         // will be set manually and locked to a position, so this listener needs to be disabled
-        if (!userProfilesViewModel.loggedIn) {
+        if (userProfilesViewModel.loggedIn.value != true) {
             binding.spinnerLogin.onItemSelectedListener =
                 object : AdapterView.OnItemSelectedListener {
                     override fun onItemSelected(

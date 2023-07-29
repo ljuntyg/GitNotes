@@ -30,7 +30,8 @@
 
     <fragment
         android:id="@+id/note_fragment"
-        android:name="com.ljuntyg.gitnotes.NoteFragment">
+        android:name="com.ljuntyg.gitnotes.NoteFragment"
+        tools:layout="@layout/fragment_note">
 
         <argument
             android:name="note"
@@ -39,11 +40,20 @@
         <argument
             android:name="new_note"
             app:argType="boolean" />
+
+        <action
+            android:id="@+id/action_noteFragment_to_settingsFragment"
+            app:destination="@id/settings_fragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
         android:id="@+id/settings_fragment"
-        android:name="com.ljuntyg.gitnotes.SettingsFragment">
+        android:name="com.ljuntyg.gitnotes.SettingsFragment"
+        android:label="@string/settings">
     </fragment>
 
 </navigation>

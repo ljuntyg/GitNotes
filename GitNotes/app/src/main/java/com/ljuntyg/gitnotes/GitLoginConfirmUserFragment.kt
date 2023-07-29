@@ -52,16 +52,13 @@ class GitLoginConfirmUserFragment : Fragment() {
                 if (userProfile == null) {
                     view.showShortSnackbar(getString(R.string.unable_find_user_profile))
                 } else {
-                    userProfilesViewModel.setSelectedUserProfile(userProfile)
                     // If selected user does not have stored credentials, then overwrite the last user's token with a new empty token,
                     // if selected user DOES have stored credentials, then nothing will be done and the token will be kept as is for user
                     if (userProfilesViewModel.selectedUserPrefs.getCredentials().first != userProfile.profileName) {
-                        userProfilesViewModel.selectedUserPrefs.insertOrReplace(
-                            userProfile.profileName,
-                            ""
-                        )
+                        userProfilesViewModel.logInAsUser(userProfile, "")
+                    } else {
+                        userProfilesViewModel.logInAsUser(userProfile, userProfilesViewModel.selectedUserPrefs.getCredentials().second)
                     }
-                    userProfilesViewModel.loggedIn = true
 
                     requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar(
                         getString(
