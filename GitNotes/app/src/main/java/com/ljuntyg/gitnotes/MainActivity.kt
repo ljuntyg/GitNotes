@@ -77,15 +77,16 @@ class MainActivity : AppCompatActivity() {
     private fun handleSendText(intent: Intent) {
         val sharedText =
             intent.getStringExtra(Intent.EXTRA_TEXT) ?: getString(R.string.error_intent_no_text)
-        val longTitle = sharedText.split("\n").first()
+
+        /**val longTitle = sharedText.split("\n").first()
         val maxLength = 250
         val title = if (longTitle.length <= maxLength) {
             longTitle
         } else {
             "${longTitle.take(maxLength - 3)}..."
-        }
+        }*/
 
-        val newNote = Note(title = title, body = sharedText)
+        val newNote = Note(title = "", body = sharedText)
         notesViewModel.viewModelScope.launch {
             newNote.id = notesViewModel.insertAsync(newNote).await()
             val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(

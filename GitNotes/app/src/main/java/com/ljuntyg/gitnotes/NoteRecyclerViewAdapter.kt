@@ -16,7 +16,18 @@ class NoteListAdapter(private val navController: NavController) : RecyclerView.A
 
     class NoteViewHolder(private val binding: RecyclerViewRowBinding, private val navController: NavController) : RecyclerView.ViewHolder(binding.root) {
         fun bind(note: Note) {
-            binding.textView.text = note.title
+            val displayTitle = note.title.ifBlank {
+                val fromBody = note.body.split("\n").firstOrNull().orEmpty()
+                if (fromBody.isBlank()) {
+                    "Empty note"
+                } else {
+                    "…$fromBody"
+                }
+            }
+
+            binding.textView.text = displayTitle
+            binding.dateTextView.text = note.lastUpdatedAt.toFormattedDateString()
+
             binding.root.setOnClickListener {
                 val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToNoteFragment(note, false)
                 navController.navigate(action)

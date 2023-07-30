@@ -70,7 +70,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:backgroundTint="#DC3545"
+                android:backgroundTint="@color/warning_red"
                 android:text="@string/delete_repo"
                 android:textSize="@dimen/text_size_medium"
                 app:icon="@drawable/delete_48px" />

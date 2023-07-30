@@ -38,16 +38,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!--<EditText
-                android:id="@+id/edit_text_handling_create1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:layout_marginBottom="16dp"
-                android:textSize="@dimen/text_size_medium"
-                android:hint="@string/repo_name"
-                android:inputType="text" />-->
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/text_input_layout_handling_create2"
                 style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
@@ -69,21 +59,11 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!--<EditText
-                android:id="@+id/edit_text_handling_create2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:layout_marginBottom="16dp"
-                android:textSize="@dimen/text_size_medium"
-                android:hint="@string/repo_link"
-                android:inputType="text" />-->
-
             <Button
                 android:id="@+id/button_handling_create"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#28A745"
+                android:backgroundTint="@color/confirm_green"
                 android:minHeight="48dp"
                 android:text="@string/add_repo"
                 android:textSize="@dimen/text_size_medium" />

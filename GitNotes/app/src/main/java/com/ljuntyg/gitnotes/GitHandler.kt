@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.PullCommand
 import org.eclipse.jgit.api.PushCommand
+import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.lib.ConfigConstants
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.lib.RepositoryCache
@@ -22,10 +23,10 @@ import kotlin.io.path.createTempDirectory
 class GitHandler(private val appContext: Context, private val notesViewModel: NotesViewModel) {
     private val filesDir = appContext.filesDir
 
-    data class GitResult(
-        val success: Boolean,
-        val exception: Exception?
-    )
+    sealed class GitResult {
+        data object Success : GitResult()
+        data class Failure(val exception: Exception?, val needForce: Boolean = false) : GitResult()
+    }
 
     inner class NotGitNotesRepositoryException : Exception(appContext.getString(R.string.remote_not_gitnotes_repo))
 
@@ -35,16 +36,19 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
         val files = dir.listFiles()
         if (files == null || files.isEmpty()) return true
 
-        return files.filter { it.isFile && !it.name.startsWith(".git") }
-            .all { file ->
-                file.extension == "txt" && file.bufferedReader().use { it.readLine() }
-                    .startsWith("Title: ")
+        return files.filter { it.isFile && !it.name.startsWith(".git") }.all { file ->
+            file.extension == "txt" && file.bufferedReader().use { reader ->
+                reader.readLine().startsWith("ID: ")
+                        && reader.readLine().startsWith("Created at: ")
+                        && reader.readLine().startsWith("Updated at: ")
             }
+        }
     }
 
     suspend fun createNoteFiles(jgit: Git, notes: List<Note>) = withContext(Dispatchers.IO) {
         val dir = jgit.repository.directory.parentFile
-        val noteFileNames = notes.map { "${it.id}.txt" }.toSet()
+
+        val noteFileNames = notes.map { "${it.title.take(20).replace(" ", "_")}.txt" }.toSet()
 
         dir.listFiles()?.forEach { file ->
             if (file.name !in noteFileNames) {
@@ -53,8 +57,8 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
         }
 
         for (note in notes) {
-            val noteFile = File(dir, "${note.id}.txt")
-            noteFile.writeText("Title: ${note.title}\n\n${note.body}")
+            val noteFile = File(dir, "${note.title.take(20).replace(" ", "_")}.txt")
+            noteFile.writeText("ID: ${note.id}\nCreated at: ${note.createdAt}\nUpdated at: ${note.lastUpdatedAt}\n\nTitle: ${note.title}\n\nBody: ${note.body}")
             jgit.add().addFilepattern(noteFile.name).call()
         }
     }
@@ -69,16 +73,21 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
 
         // Insert all notes from the Git repository
         repoDir?.listFiles()?.forEach { file ->
-            if (file.isFile && file.extension == "txt") {
+            if (file.isFile && file.name.endsWith(".txt")) {
                 val content = file.readText()
 
-                val noteId = file.nameWithoutExtension.toLongOrNull() // Parse ID from filename
+                val noteId =
+                    content.substringAfter("ID: ").substringBefore("\n").toLongOrNull() // Parse ID from filename
+                val noteCreatedAt =
+                    content.substringAfter("\nCreated at: ").substringBefore("\n").toLongOrNull() // Parse note creation time
+                val noteUpdatedAt =
+                    content.substringAfter("\nUpdated at: ").substringBefore("\n\n").toLongOrNull() // Parse note update time
                 val noteTitle =
-                    content.substringAfter("Title: ").substringBefore("\n") // Parse note title
-                val noteBody = content.substringAfter("\n\n") // Parse note body
+                    content.substringAfter("\n\nTitle: ").substringBefore("\n\n") // Parse note title
+                val noteBody = content.substringAfter("\n\nBody: ") // Parse note body
 
-                if (noteId != null) {
-                    val note = Note(noteId, noteTitle, noteBody)
+                if (noteId != null && noteCreatedAt != null && noteUpdatedAt != null) {
+                    val note = Note(noteId, noteTitle, noteBody, noteCreatedAt, noteUpdatedAt)
                     note.id = notesViewModel.insertAsync(note).await()
                 }
             }
@@ -111,10 +120,14 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
         return@withContext try {
             val commit = jgit.commit().setMessage(commitMessage).call()
 
-            GitResult(commit != null, null)
+            if (commit != null) {
+                GitResult.Success
+            } else {
+                GitResult.Failure(null)
+            }
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when committing: $e")
-            GitResult(false, e)
+            GitResult.Failure(e)
         }
     }
 
@@ -138,41 +151,46 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
                 // If the verification fails, delete the temporary repo and return false
                 tempJgit.repository.close()
                 tempDir.deleteRecursively()
-                return@withContext GitResult(false, NotGitNotesRepositoryException())
+                return@withContext GitResult.Failure(NotGitNotesRepositoryException())
             }
 
             // If the verification succeeds, push the changes to the remote repo
             return@withContext pushJGitToRemote(jgit, remoteLink, token)
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when verifying and pushing: $e")
-            return@withContext GitResult(false, e)
+            return@withContext GitResult.Failure(e)
         }
     }
 
-    private suspend fun pushJGitToRemote(jgit: Git, httpsLink: String, token: String): GitResult = withContext(Dispatchers.IO) {
+    suspend fun pushJGitToRemote(jgit: Git, httpsLink: String, token: String, force: Boolean = false): GitResult = withContext(Dispatchers.IO) {
         return@withContext try {
             val pushCommand: PushCommand = jgit.push()
             pushCommand.remote = httpsLink.trim()
             pushCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
             pushCommand.setPushAll()
+            pushCommand.isForce = force
 
             val results = pushCommand.call()
 
             var success = true
+            var needForcePush = false
             for (result in results) {
                 for (update in result.remoteUpdates) {
                     if (update.status != RemoteRefUpdate.Status.OK &&
                         update.status != RemoteRefUpdate.Status.UP_TO_DATE
                     ) {
                         success = false
+                        if (update.status == RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD) {
+                            needForcePush = true
+                        }
                         break
                     }
                 }
             }
-            GitResult(success, null)
+            if (success) GitResult.Success else GitResult.Failure(null, needForcePush)
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when pushing: $e")
-            GitResult(false, e)
+            GitResult.Failure(e)
         }
     }
 
@@ -195,18 +213,19 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
                 // If the verification fails, delete the temporary repo and return false
                 tempJgit.repository.close()
                 tempDir.deleteRecursively()
-                return@withContext GitResult(false, NotGitNotesRepositoryException())
+                return@withContext GitResult.Failure(NotGitNotesRepositoryException())
             }
 
             // If the verification succeeds, pull the changes into the actual repo
             return@withContext pullToJGitFromRemote(jgit, remoteLink, token)
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when verifying and pulling: $e")
-            return@withContext GitResult(false, e)
+            return@withContext GitResult.Failure(e)
         }
     }
 
-    private suspend fun pullToJGitFromRemote(jgit: Git, httpsLink: String, token: String): GitResult = withContext(Dispatchers.IO) {
+    // TODO: Makes sense to take force boolean here?
+    suspend fun pullToJGitFromRemote(jgit: Git, httpsLink: String, token: String, force: Boolean = false): GitResult = withContext(Dispatchers.IO) {
         return@withContext try {
             val repoConfig = jgit.repository.config
             repoConfig.setString(
@@ -223,16 +242,25 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
             )
             repoConfig.save()
 
+            // Reset local branch to the state of the remote branch if force pull is enabled
+            if (force) {
+                jgit.reset().setMode(ResetCommand.ResetType.HARD).setRef("origin/master").call()
+            }
+
             val pullCommand: PullCommand = jgit.pull()
             pullCommand.remote = "origin"
             pullCommand.setCredentialsProvider(UsernamePasswordCredentialsProvider(token, ""))
 
             val pullResult = pullCommand.call()
 
-            GitResult(pullResult.mergeResult.mergeStatus.isSuccessful, null)
+            if (pullResult.mergeResult.mergeStatus.isSuccessful) {
+                GitResult.Success
+            } else {
+                GitResult.Failure(null)
+            }
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when pulling: $e")
-            GitResult(false, e)
+            GitResult.Failure(e)
         }
     }
 
@@ -254,7 +282,7 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
                 // If the verification fails, delete the temporary repo and return false
                 tempJgit.repository.close()
                 tempDir.deleteRecursively()
-                return@withContext GitResult(false, NotGitNotesRepositoryException())
+                return@withContext GitResult.Failure(NotGitNotesRepositoryException())
             }
 
             // The cloned repository is valid so create a new Repository object for it
@@ -264,7 +292,7 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
             return@withContext result
         } catch (e: Exception) {
             Log.d("MYLOG", "Exception when cloning: $e")
-            return@withContext GitResult(false, e)
+            return@withContext GitResult.Failure(e)
         }
     }
 }

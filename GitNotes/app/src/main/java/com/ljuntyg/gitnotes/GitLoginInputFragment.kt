@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.ljuntyg.gitnotes.databinding.FragmentGitLoginInputBinding
 import kotlinx.coroutines.launch
+import com.ljuntyg.gitnotes.GitHandler.GitResult
 
 class GitLoginInputFragment : Fragment() {
     private var _binding: FragmentGitLoginInputBinding? = null
@@ -196,22 +197,27 @@ class GitLoginInputFragment : Fragment() {
 
                             view.showIndefiniteSnackbar(getString(R.string.cloning_repo))
                             val newRepo = Repository(profileName = profileName, name = repoLink.getRepoNameFromUrl(), httpsLink = repoLink)
-                            val cloneResult = gitHandler.verifyAndClone(newRepo, repoLink, token)
 
-                            if (cloneResult.success) {
-                                val newUserProfile = UserProfile(profileName, mutableListOf(newRepo))
+                            when (val cloneResult = gitHandler.verifyAndClone(newRepo, repoLink, token)) {
+                                is GitResult.Success -> {
+                                    val newUserProfile = UserProfile(profileName, mutableListOf(newRepo))
 
-                                userProfilesViewModel.logInAsUser(newUserProfile, token)
+                                    userProfilesViewModel.logInAsUser(newUserProfile, token)
 
-                                requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar(getString(R.string.success_clone))
+                                    requireActivity().findViewById<View>(android.R.id.content).showShortSnackbar(getString(R.string.success_clone))
 
-                                parentFragmentManager.findFragmentByTag("GitLoginFragment")?.let {
-                                    (it as DialogFragment).dismiss()
+                                    parentFragmentManager.findFragmentByTag("GitLoginFragment")?.let {
+                                        (it as DialogFragment).dismiss()
+                                    }
                                 }
-                            } else if (cloneResult.exception != null) {
-                                view.showShortSnackbar(getString(R.string.error, cloneResult.exception.message))
-                            } else {
-                                view.showShortSnackbar(getString(R.string.failed_clone))
+                                is GitResult.Failure -> {
+                                    if (cloneResult.exception == null) view.showShortSnackbar(getString(R.string.failed_clone))
+                                    else view.showShortSnackbar(getString(R.string.error, cloneResult.exception?.message))
+
+                                    if (cloneResult.needForce) {
+                                        // TODO: Handle force clone scenario
+                                    }
+                                }
                             }
                         }
                     }

@@ -92,8 +92,15 @@ class NoteFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
 
-        note.title = binding.editTextTitle.text.toString()
-        note.body = binding.editTextBody.text.toString()
+        val newTitle = binding.editTextTitle.text.toString()
+        val newBody = binding.editTextBody.text.toString()
+
+        if (newTitle != note.title || newBody != note.body) {
+            note.lastUpdatedAt = System.currentTimeMillis()
+        }
+
+        note.title = newTitle
+        note.body = newBody
 
         // Ensure Note exists in database, if so update it
         val allNotes = notesViewModel.allNotes.value

@@ -23,6 +23,8 @@
     <string name="statistics">Statistics</string>
     <string name="true_string">True</string>
     <string name="false_string">False</string>
+    <string name="alert_yes">Yes</string>
+    <string name="alert_no">No</string>
 
     <string name="new_repo">New repository</string>
     <string name="repo_name">Repository name</string>
@@ -47,6 +49,11 @@
     <string name="success_pull">Successfully pulled repository</string>
     <string name="success_clone">Successfully cloned repository</string>
     <string name="remote_not_gitnotes_repo">"Remote is not a GitNotes repository"</string>
+    <string name="failed_commit">Failed to commit, no push was done</string>
+    
+    <string name="push_failed_attempt_force">Push failed, attempt force push?</string>
+    <string name="push_attempt_force_explanation">Pushing to remote repository failed, would you like to attempt a force push?</string>
+    <string name="warning_force_push">WILL OVERWRITE ANY FILES IN REMOTE REPOSITORY</string>
 
     <string name="unable_find_user_profile">"Unable to find user profile"</string>
     <string name="logged_in_as">Logged in as %s</string>

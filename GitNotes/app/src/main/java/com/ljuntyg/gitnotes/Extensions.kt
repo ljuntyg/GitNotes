@@ -6,6 +6,9 @@ import android.os.Parcelable
 import android.view.View
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 fun View.showShortSnackbar(message: String) {
     Snackbar.make(this, message, Snackbar.LENGTH_SHORT).show()
@@ -77,4 +80,10 @@ fun TextInputLayout.validateProfileName(allUserProfiles: List<UserProfile>): Boo
         this.isErrorEnabled = false
         true
     }
+}
+
+fun Long.toFormattedDateString(): String {
+    val date = Date(this)
+    val format = SimpleDateFormat("MMMM dd, HH:mm", Locale.getDefault())
+    return format.format(date)
 }

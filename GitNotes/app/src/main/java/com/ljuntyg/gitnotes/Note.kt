@@ -9,6 +9,7 @@ import androidx.room.RoomDatabase
 import androidx.room.Database
 import android.content.Context
 import android.os.Parcelable
+import androidx.room.ColumnInfo
 import androidx.room.Delete
 import androidx.room.Room
 import androidx.room.Update
@@ -26,7 +27,13 @@ data class Note(
     var id: Long = 0,
 
     var title: String = "",
-    var body: String = ""
+    var body: String = "",
+
+    @ColumnInfo(name = "created_at")
+    var createdAt: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "last_updated_at")
+    var lastUpdatedAt: Long = System.currentTimeMillis()
 ) : Parcelable
 
 /**
