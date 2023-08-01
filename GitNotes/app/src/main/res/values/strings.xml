@@ -25,6 +25,8 @@
     <string name="false_string">False</string>
     <string name="alert_yes">Yes</string>
     <string name="alert_no">No</string>
+    <string name="create_new_note">Create new note.</string>
+    <string name="search">Search</string>
 
     <string name="new_repo">New repository</string>
     <string name="repo_name">Repository name</string>
@@ -115,6 +117,20 @@
     <string name="no_notes_notes_not_deleted">No notes found</string>
     <string name="no_repos_gits_not_deleted">No repositories found</string>
     <string name="git_repos_deleted">All Git repositories deleted</string>
+
+    <string name="reset_token_alert_title">Reset Personal Access Token?</string>
+    <string name="reset_token_alert_message">Do you want to reset the registered Personal Access Token?</string>
+    <string name="reset_token_alert_warning">IF YOU DO NOT HAVE THE TOKEN SAVED ELSEWHERE, IT WILL NOT BE RECOVERABLE</string>
+
+    <string name="delete_notes_alert_title">Delete all notes?</string>
+    <string name="delete_notes_alert_message">Do you want to delete all notes stored locally? This will not affect notes in any remote repositories.</string>
+    <string name="delete_notes_alert_warning">IF NOTES ARE NOT IN ANY REMOTE REPOSITORY, THEY WILL NOT BE RECOVERABLE</string>
+
+    <string name="delete_repos_alert_title">Delete all Git repositories?</string>
+    <string name="delete_repos_alert_message">Do you want to delete all Git repositories stored locally? This will not affect local repositories associated with users.</string>
+
+    <string name="delete_profile_alert_title">Delete user profile \"%s\"?</string>
+    <string name="delete_profile_alert_message">Do you want to delete user profile \"%s\"? Any local repositories associated with the profile will be deleted in the process.</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris

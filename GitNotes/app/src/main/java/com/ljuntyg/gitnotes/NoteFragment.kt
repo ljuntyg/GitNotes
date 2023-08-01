@@ -95,7 +95,7 @@ class NoteFragment : Fragment() {
         val newTitle = binding.editTextTitle.text.toString()
         val newBody = binding.editTextBody.text.toString()
 
-        if (newTitle != note.title || newBody != note.body) {
+        if (newTitle.trim() != note.title.trim() || newBody.trim() != note.body.trim()) {
             note.lastUpdatedAt = System.currentTimeMillis()
         }
 

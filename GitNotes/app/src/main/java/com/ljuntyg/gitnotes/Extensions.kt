@@ -87,3 +87,20 @@ fun Long.toFormattedDateString(): String {
     val format = SimpleDateFormat("MMMM dd, HH:mm", Locale.getDefault())
     return format.format(date)
 }
+
+/** fun String.sanitizedFileName(): String {
+    return this.replace(Regex("[<>:\"/\\\\|?*]"), "�")
+} */
+
+fun String.sanitizedFileName(): String {
+    return this
+        .replace('<', '＜')
+        .replace('>', '＞')
+        .replace(':', '：')
+        .replace('"', '＂')
+        .replace('/', '／')
+        .replace('\\', '＼')
+        .replace('|', '｜')
+        .replace('?', '？')
+        .replace('*', '＊')
+}

@@ -7,6 +7,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -70,7 +71,7 @@ class RecyclerViewFragment : Fragment() {
         // Observe allNotes LiveData from the NotesViewModel
         notesViewModel.allNotes.observe(viewLifecycleOwner) { notes ->
             // Update the cached copy of the notes in the adapter.
-            notes?.let { adapter.notes = it }
+            notes?.let { adapter.notes = notes.sortedByDescending { note -> note.lastUpdatedAt } }
         }
 
         // Set up FAB click listener
@@ -118,6 +119,24 @@ class RecyclerViewFragment : Fragment() {
                     R.id.action_settings_main -> {
                         val action = RecyclerViewFragmentDirections.actionRecyclerViewFragmentToSettingsFragment()
                         findNavController().navigate(action)
+                        return true
+                    }
+
+                    R.id.action_search -> {
+                        val searchView = menuItem.actionView as SearchView
+                        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                            override fun onQueryTextSubmit(query: String): Boolean {
+                                // Filter notes when the user submits a search query
+                                adapter.filter.filter(query)
+                                return true
+                            }
+
+                            override fun onQueryTextChange(newText: String): Boolean {
+                                // Filter notes as the user types
+                                adapter.filter.filter(newText)
+                                return true
+                            }
+                        })
                         return true
                     }
                 }

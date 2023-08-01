@@ -100,61 +100,74 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 }
 
                 "reset_token" -> {
-                    // Handle token reset
-                    val user = userProfilesViewModel.selectedUserPrefs.getCredentials().first ?: ""
-                    if (userProfilesViewModel.selectedUserPrefs.getCredentials().second?.isNotEmpty() == true) {
-                        userProfilesViewModel.selectedUserPrefs.insertOrReplace(user, "")
-                        view?.showShortSnackbar(getString(R.string.token_deleted))
-                    } else {
-                        view?.showShortSnackbar(getString(R.string.no_token_found))
+                    val dialog = WarningDialogFragment.newInstance(getString(R.string.reset_token_alert_title),
+                        getString(R.string.reset_token_alert_message), getString(R.string.reset_token_alert_warning))
+                    dialog.setPositiveButtonListener {
+                        val user = userProfilesViewModel.selectedUserPrefs.getCredentials().first ?: ""
+                        if (userProfilesViewModel.selectedUserPrefs.getCredentials().second?.isNotEmpty() == true) {
+                            userProfilesViewModel.selectedUserPrefs.insertOrReplace(user, "")
+                            view?.showShortSnackbar(getString(R.string.token_deleted))
+                        } else {
+                            view?.showShortSnackbar(getString(R.string.no_token_found))
+                        }
                     }
+                    dialog.show(requireActivity().supportFragmentManager, "WarningDialogFragment")
                 }
 
                 "delete_all_notes" -> {
-                    // Handle all notes deletion
-                    notesViewModel.viewModelScope.launch {
-                        val notes = notesViewModel.allNotes.value
-                        if (notes != null) {
-                            for (note in notes) {
-                                notesViewModel.delete(note)
-                            }
-
-                            if (notesViewModel.allNotes.value?.isNotEmpty() == true) {
-                                view?.showShortSnackbar(getString(R.string.notes_deleted))
+                    val dialog = WarningDialogFragment.newInstance(getString(R.string.delete_notes_alert_title),
+                        getString(R.string.delete_notes_alert_message), getString(R.string.delete_notes_alert_warning))
+                    dialog.setPositiveButtonListener {
+                        notesViewModel.viewModelScope.launch {
+                            val notes = notesViewModel.allNotes.value
+                            if (notes != null) {
+                                for (note in notes) {
+                                    notesViewModel.delete(note)
+                                }
+                                if (notesViewModel.allNotes.value?.isNotEmpty() == true) {
+                                    view?.showShortSnackbar(getString(R.string.notes_deleted))
+                                } else {
+                                    view?.showShortSnackbar(getString(R.string.incomplete_note_deletion))
+                                }
                             } else {
-                                view?.showShortSnackbar(getString(R.string.incomplete_note_deletion))
+                                view?.showShortSnackbar(getString(R.string.no_notes_notes_not_deleted))
                             }
-                        } else {
-                            view?.showShortSnackbar(getString(R.string.no_notes_notes_not_deleted))
                         }
                     }
+                    dialog.show(requireActivity().supportFragmentManager, "WarningDialogFragment")
                 }
 
                 "delete_all_git_repos" -> {
-                    // Handle all git repos deletion
-                    userProfilesViewModel.viewModelScope.launch {
-                        val filesDir = requireActivity().filesDir
-
-                        filesDir.walk().forEach { file ->
-                            if (file.isDirectory && file.resolve(".git").exists()) {
-                                file.deleteRecursively()
+                    val dialog = WarningDialogFragment.newInstance(getString(R.string.delete_repos_alert_title),
+                        getString(R.string.delete_repos_alert_message), null)
+                    dialog.setPositiveButtonListener {
+                        userProfilesViewModel.viewModelScope.launch {
+                            val filesDir = requireActivity().filesDir
+                            filesDir.walk().forEach { file ->
+                                if (file.isDirectory && file.resolve(".git").exists()) {
+                                    file.deleteRecursively()
+                                }
                             }
+                            view?.showShortSnackbar(getString(R.string.git_repos_deleted))
                         }
-
-                        view?.showShortSnackbar(getString(R.string.git_repos_deleted))
                     }
+                    dialog.show(requireActivity().supportFragmentManager, "WarningDialogFragment")
                 }
 
                 "delete_selected_profile" -> {
-                    // Handle selected profile deletion
-                    val selectedUserProfile = userProfilesViewModel.selectedUserProfile.value
-                    if (selectedUserProfile == null || !userProfilesViewModel.loggedIn.value!!) {
-                        Toast.makeText(requireContext(), getString(R.string.no_user_profile_selected), Toast.LENGTH_SHORT).show()
-                    } else {
+                    if (userProfilesViewModel.loggedIn.value != true) {
+                        view?.showShortSnackbar(getString(R.string.no_user_profile_selected))
+                        return@let
+                    }
+                    val selectedUserProfile = userProfilesViewModel.selectedUserProfile.value!!
+                    val dialog = WarningDialogFragment.newInstance(getString(R.string.delete_profile_alert_title, selectedUserProfile.profileName),
+                        getString(R.string.delete_profile_alert_message, selectedUserProfile.profileName), null)
+                    dialog.setPositiveButtonListener {
                         userProfilesViewModel.delete(selectedUserProfile)
                         userProfilesViewModel.setLoggedIn(false)
                         view?.showShortSnackbar(getString(R.string.deleted_profile, selectedUserProfile.profileName.trim()))
                     }
+                    dialog.show(requireActivity().supportFragmentManager, "WarningDialogFragment")
                 }
 
                 else -> {}

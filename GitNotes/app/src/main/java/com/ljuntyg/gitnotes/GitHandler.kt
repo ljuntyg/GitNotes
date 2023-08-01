@@ -57,7 +57,24 @@ class GitHandler(private val appContext: Context, private val notesViewModel: No
         }
 
         for (note in notes) {
-            val noteFile = File(dir, "${note.title.take(20).replace(" ", "_")}.txt")
+            val fromTitle = if (note.title.trim().length >= 20) {
+                "${note.title.take(19).trim().sanitizedFileName()}…"
+            } else {
+                note.title.trim().sanitizedFileName()
+            }
+
+            val fileName = fromTitle.ifBlank {
+                val fromBody = note.body.split("\n").firstOrNull().orEmpty()
+                if (fromBody.isBlank()) {
+                    "empty_note"
+                } else if (fromBody.trim().length >= 20) {
+                    "…${fromBody.take(18).trim().sanitizedFileName()}…"
+                } else {
+                    "…${fromBody.trim().sanitizedFileName()}"
+                }
+            }
+
+            val noteFile = File(dir, "${note.id}_$fileName.txt")
             noteFile.writeText("ID: ${note.id}\nCreated at: ${note.createdAt}\nUpdated at: ${note.lastUpdatedAt}\n\nTitle: ${note.title}\n\nBody: ${note.body}")
             jgit.add().addFilepattern(noteFile.name).call()
         }

@@ -9,9 +9,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp" />
+        android:layout_height="match_parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
@@ -20,6 +18,7 @@
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="@dimen/fab_margin"
         android:layout_marginBottom="16dp"
+        android:contentDescription="@string/create_new_note"
         app:srcCompat="@drawable/add_48px" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

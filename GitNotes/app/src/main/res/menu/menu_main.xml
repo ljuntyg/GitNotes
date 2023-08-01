@@ -11,6 +11,13 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/search_48px"
+        android:title="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView" />
+
+    <item
         android:id="@+id/action_git"
         android:icon="@drawable/github_mark"
         app:showAsAction="ifRoom"

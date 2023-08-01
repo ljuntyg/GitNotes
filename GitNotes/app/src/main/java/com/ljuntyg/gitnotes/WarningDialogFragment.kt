@@ -37,6 +37,10 @@ class WarningDialogFragment : DialogFragment() {
         // This ensures that the custom white background with rounded corners is what's visible
         dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
+        if (binding.warning.text == "") {
+            binding.cardView.visibility = View.GONE
+        }
+
         binding.buttonYes.setOnClickListener {
             positiveButtonListener?.invoke()
             dismiss() // Close the dialog
@@ -62,11 +66,11 @@ class WarningDialogFragment : DialogFragment() {
     }
 
     companion object {
-        fun newInstance(title: String, message: String, warning: String) = WarningDialogFragment().apply {
+        fun newInstance(title: String, message: String, warning: String?) = WarningDialogFragment().apply {
             arguments = Bundle().apply {
                 putString("title", title)
                 putString("message", message)
-                putString("warning", warning)
+                putString("warning", warning ?: "")
             }
         }
     }
