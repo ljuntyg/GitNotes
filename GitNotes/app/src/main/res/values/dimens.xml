@@ -1,0 +1,10 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_medium_plus">18sp</dimen>
+    <dimen name="text_size_large">20sp</dimen>
+    <dimen name="text_size_large_plus">24sp</dimen>
+    <dimen name="text_size_huge">30sp</dimen>
+    <dimen name="text_size_huge_plus">36sp</dimen>
+</resources>

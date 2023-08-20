@@ -1,0 +1,171 @@
+<resources>
+    <string name="app_name">GitNotes</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="title">Title</string>
+    <string name="body">Body</string>
+    <string name="gitnotes">GitNotes</string>
+    <string name="delete">Delete</string>
+    <string name="github">GitHub</string>
+    <string name="selected_profile">Selected profile: %s</string>
+    <string name="confirm">Confirm</string>
+    <string name="delete_repo">Delete Repository</string>
+    <string name="add_repo">Add Repository</string>
+    <string name="push">Push</string>
+    <string name="pull">Pull</string>
+    <string name="error">ERROR: %s</string>
+    <string name="settings">Settings</string>
+    <string name="data">Data</string>
+    <string name="statistics">Statistics</string>
+    <string name="true_string">True</string>
+    <string name="false_string">False</string>
+    <string name="alert_yes">Yes</string>
+    <string name="alert_no">No</string>
+    <string name="create_new_note">Create new note.</string>
+    <string name="search">Search</string>
+
+    <string name="new_repo">New repository</string>
+    <string name="repo_name">Repository name</string>
+    <string name="repo_link">Repository HTTPS link</string>
+    <string name="no_repo_link">No HTTPS link for repository</string>
+    <string name="invalid_link">Not a valid HTTPS link</string>
+    <string name="invalid_token">Not a valid token</string>
+    <string name="enter_repo_name">Please enter a name for the repository</string>
+    <string name="repo_name_mismatch">Remote name \"%s\" does not match local name \"%s\"</string>
+
+    <string name="created_repo">Created new repository %s</string>
+    <string name="failed_create_repo">Failed to create new repository</string>
+    <string name="deleted_repo">Deleted repository %s</string>
+    <string name="failed_delete_repo">Failed to delete repository</string>
+    <string name="pushing_repo">Pushing repository…</string>
+    <string name="pulling_repo">Pulling repository…</string>
+    <string name="cloning_repo">Cloning repository…</string>
+    <string name="failed_push">Failed to push repository</string>
+    <string name="failed_pull">Failed to pull repository</string>
+    <string name="failed_clone">Failed to clone repository</string>
+    <string name="success_push">Successfully pushed repository</string>
+    <string name="success_pull">Successfully pulled repository</string>
+    <string name="success_clone">Successfully cloned repository</string>
+    <string name="remote_not_gitnotes_repo">"Remote is not a GitNotes repository"</string>
+    <string name="failed_commit">Failed to commit, no push was done</string>
+    
+    <string name="push_failed_attempt_force">Push failed, attempt force push?</string>
+    <string name="push_attempt_force_explanation">Pushing to remote repository failed, would you like to attempt a force push?</string>
+    <string name="warning_force_push">WILL OVERWRITE ANY FILES IN REMOTE REPOSITORY</string>
+
+    <string name="unable_find_user_profile">"Unable to find user profile"</string>
+    <string name="logged_in_as">Logged in as %s</string>
+    <string name="new_user_profile">New user profile</string>
+    <string name="no_user_profile_found">No user profile found</string>
+    <string name="no_user_profile_selected">No user profile is selected</string>
+    <string name="deleted_profile">Deleted user profile %s</string>
+
+    <string name="personal_access_token">Personal Access Token</string>
+    <string name="provide_token_title">"Provide PAT for User"</string>
+    <string name="provide_token_body">No PAT (Personal Access Token) found for user. Please provide a valid PAT with access to the repository.</string>
+    <string name="provide_token_button">Provide PAT</string>
+    <string name="please_fill_all_fields">"Please fill in all fields"</string>
+    <string name="created_local_repo">Created new local repository</string>
+    <string name="success_register_token_for">Successfully registered token for %s</string>
+
+    <string name="clone_remote_title">Clone remote GitNotes repository with PAT</string>
+    <string name="clone_remote_body">Login using a PAT (Personal Access Token) and clone a given remote GitNotes repository via an HTTPS link.</string>
+    <string name="clone_remote_button">Clone Remote Repository</string>
+    <string name="local_profile_name">Local profile name</string>
+    <string name="local_repo_name">Local repository name</string>
+
+    <string name="create_local_title">Create new local GitNotes repository</string>
+    <string name="create_local_body">Create a new local GitNotes repository. An HTTPS link to a remote repository can be added for the local repository later.</string>
+    <string name="create_local_button">Create Local Repository</string>
+
+    <string name="change_user_profile">Change user profile</string>
+    <string name="reset_token">Reset Personal Access Token</string>
+    <string name="delete_all_notes">Delete all notes</string>
+    <string name="delete_all_git_repos">Delete all Git repositories</string>
+    <string name="delete_selected_profile">Delete selected user profile</string>
+
+    <string name="change_user_summary">Change the selected user profile or create new profile</string>
+    <string name="reset_token_summary">Reset the current Personal Access Token if any is set</string>
+    <string name="delete_all_notes_summary">Delete all notes which are stored locally</string>
+    <string name="delete_all_git_repos_summary">Delete Git repositories in storage, does not delete repositories in the database</string>
+    <string name="delete_selected_profile_summary">Delete the selected user profile if any is selected</string>
+
+    <string name="login_status">Log-in status</string>
+    <string name="logged_in">Logged in: %s</string>
+    <string name="current_profile">Selected profile</string>
+    <string name="number_of_notes">Number of notes</string>
+    <string name="notes_count">Notes count: %s</string>
+    <string name="number_of_profiles">Number of profiles</string>
+    <string name="profiles_count">Profiles count: %s</string>
+    <string name="number_of_repos">Number of repositories</string>
+    <string name="repos_count">Repositories count: %s</string>
+
+    <string name="error_intent_no_text">ERROR: No text from intent found</string>
+    <string name="created_note">New note created</string>
+    <string name="deleted_note">Note deleted</string>
+    <string name="user_already_exists">Profile with name %s already exists</string>
+
+    <string name="no_user_token_not_deleted">No user was found, no token was deleted</string>
+    <string name="no_token_found">No registered token found</string>
+    <string name="token_deleted">Token deleted</string>
+    <string name="notes_deleted">All notes deleted</string>
+    <string name="incomplete_note_deletion">Error whilst deleting notes</string>
+    <string name="no_notes_notes_not_deleted">No notes found</string>
+    <string name="no_repos_gits_not_deleted">No repositories found</string>
+    <string name="git_repos_deleted">All Git repositories deleted</string>
+
+    <string name="reset_token_alert_title">Reset Personal Access Token?</string>
+    <string name="reset_token_alert_message">Do you want to reset the registered Personal Access Token?</string>
+    <string name="reset_token_alert_warning">IF YOU DO NOT HAVE THE TOKEN SAVED ELSEWHERE, IT WILL NOT BE RECOVERABLE</string>
+
+    <string name="delete_notes_alert_title">Delete all notes?</string>
+    <string name="delete_notes_alert_message">Do you want to delete all notes stored locally? This will not affect notes in any remote repositories.</string>
+    <string name="delete_notes_alert_warning">IF NOTES ARE NOT IN ANY REMOTE REPOSITORY, THEY WILL NOT BE RECOVERABLE</string>
+
+    <string name="delete_repos_alert_title">Delete all Git repositories?</string>
+    <string name="delete_repos_alert_message">Do you want to delete all Git repositories stored locally? This will not affect local repositories associated with users.</string>
+
+    <string name="delete_profile_alert_title">Delete user profile \"%s\"?</string>
+    <string name="delete_profile_alert_message">Do you want to delete user profile \"%s\"? Any local repositories associated with the profile will be deleted in the process.</string>
+
+    <string name="lorem_ipsum">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
+        volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
+        dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad
+        litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse blandit eleifend
+        diam, vel rutrum tellus vulputate quis. Aliquam eget libero aliquet, imperdiet nisl a,
+        ornare ex. Sed rhoncus est ut libero porta lobortis. Fusce in dictum tellus.\n\n
+        Suspendisse interdum ornare ante. Aliquam nec cursus lorem. Morbi id magna felis. Vivamus
+        egestas, est a condimentum egestas, turpis nisl iaculis ipsum, in dictum tellus dolor sed
+        neque. Morbi tellus erat, dapibus ut sem a, iaculis tincidunt dui. Interdum et malesuada
+        fames ac ante ipsum primis in faucibus. Curabitur et eros porttitor, ultricies urna vitae,
+        molestie nibh. Phasellus at commodo eros, non aliquet metus. Sed maximus nisl nec dolor
+        bibendum, vel congue leo egestas.\n\n
+        Sed interdum tortor nibh, in sagittis risus mollis quis. Curabitur mi odio, condimentum sit
+        amet auctor at, mollis non turpis. Nullam pretium libero vestibulum, finibus orci vel,
+        molestie quam. Fusce blandit tincidunt nulla, quis sollicitudin libero facilisis et. Integer
+        interdum nunc ligula, et fermentum metus hendrerit id. Vestibulum lectus felis, dictum at
+        lacinia sit amet, tristique id quam. Cras eu consequat dui. Suspendisse sodales nunc ligula,
+        in lobortis sem porta sed. Integer id ultrices magna, in luctus elit. Sed a pellentesque
+        est.\n\n
+        Aenean nunc velit, lacinia sed dolor sed, ultrices viverra nulla. Etiam a venenatis nibh.
+        Morbi laoreet, tortor sed facilisis varius, nibh orci rhoncus nulla, id elementum leo dui
+        non lorem. Nam mollis ipsum quis auctor varius. Quisque elementum eu libero sed commodo. In
+        eros nisl, imperdiet vel imperdiet et, scelerisque a mauris. Pellentesque varius ex nunc,
+        quis imperdiet eros placerat ac. Duis finibus orci et est auctor tincidunt. Sed non viverra
+        ipsum. Nunc quis augue egestas, cursus lorem at, molestie sem. Morbi a consectetur ipsum, a
+        placerat diam. Etiam vulputate dignissim convallis. Integer faucibus mauris sit amet finibus
+        convallis.\n\n
+        Phasellus in aliquet mi. Pellentesque habitant morbi tristique senectus et netus et
+        malesuada fames ac turpis egestas. In volutpat arcu ut felis sagittis, in finibus massa
+        gravida. Pellentesque id tellus orci. Integer dictum, lorem sed efficitur ullamcorper,
+        libero justo consectetur ipsum, in mollis nisl ex sed nisl. Donec maximus ullamcorper
+        sodales. Praesent bibendum rhoncus tellus nec feugiat. In a ornare nulla. Donec rhoncus
+        libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
+        vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
+    </string>
+</resources>
