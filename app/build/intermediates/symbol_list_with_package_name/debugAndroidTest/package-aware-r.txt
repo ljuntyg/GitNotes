@@ -1,3 +1,0 @@
-com.example.gitnotes.test
-style WhiteBackgroundDialogTheme
-style WhiteBackgroundTheme
